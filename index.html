@@ -3662,28 +3662,32 @@ Return ONLY the JSON array.`;
             subjectsContainer.style.display = 'flex';
             studyModeContainer.style.display = 'none';
             
-            // Get unique subjects from flashcards
-            const uniqueSubjects = [...new Set(flashcards.map(f => f.subject))];
-            
-            if (uniqueSubjects.length === 0) {
-                subjectsContainer.innerHTML = '<div class="card" style="text-align: center; padding: 60px;"><div style="font-size: 48px; font-weight: 200; margin-bottom: 16px;">FC</div><p style="color: var(--text-muted);">Go to a subject and click Flashcards to generate</p></div>';
+            // Use all subjects from the app
+            if (subjects.length === 0) {
+                subjectsContainer.innerHTML = '<div class="card" style="text-align: center; padding: 60px;"><div style="font-size: 48px; font-weight: 200; margin-bottom: 16px;">FC</div><p style="color: var(--text-muted);">Add subjects first to use flashcards</p></div>';
                 return;
             }
             
             // Render subject cards
             subjectsContainer.innerHTML = '';
-            uniqueSubjects.forEach(subject => {
-                const subjectFlashcards = flashcards.filter(f => f.subject === subject);
+            subjects.forEach(subject => {
+                const subjectFlashcards = flashcards.filter(f => f.subject === subject.name);
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.style.cssText = 'padding: 20px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;';
                 card.onmouseover = () => card.style.background = 'var(--surface-2)';
                 card.onmouseout = () => card.style.background = 'var(--surface)';
-                card.onclick = () => startFlashcardStudy(subject);
+                card.onclick = () => {
+                    if (subjectFlashcards.length === 0) {
+                        showAlert('No Flashcards', 'Go to "' + escapeHtml(subject.name) + '" and click Flashcards to generate them first.');
+                    } else {
+                        startFlashcardStudy(subject.name);
+                    }
+                };
                 
                 card.innerHTML = `
                     <div>
-                        <h3 style="margin: 0 0 4px 0; font-size: 16px;">${escapeHtml(subject)}</h3>
+                        <h3 style="margin: 0 0 4px 0; font-size: 16px;">${escapeHtml(subject.name)}</h3>
                         <p style="margin: 0; font-size: 13px; color: var(--text-muted);">${subjectFlashcards.length} flashcards</p>
                     </div>
                     <span style="color: var(--text-muted);">→</span>
