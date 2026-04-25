@@ -2835,7 +2835,7 @@ Return ONLY the JSON array, no other text.`;
             container.innerHTML = '<div class="card" style="grid-column: 1 / -1; text-align: center; padding: 60px;"><div style="font-size: 32px; margin-bottom: 16px;">⏳</div><p style="color: var(--text-muted);">Generating flashcards for ' + subjectName + '...</p></div>';
             
             // Generate with default settings
-            const cards = await generateFCFromAI(subjectName, '', 'Medium', 5, materialContent);
+            const cards = await generateFCFromAI(subjectName, '', 'Medium', 15, materialContent);
             
             if (cards.length === 0) {
                 showAlert('Error', 'Could not generate flashcards. Please upload materials to ' + subjectName + ' first.');
