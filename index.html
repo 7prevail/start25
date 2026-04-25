@@ -2798,13 +2798,24 @@ Return ONLY the JSON array, no other text.`;
             currentSubject = subjectName;
             showPage('flashcards');
             
-            // Clear existing flashcards and show loading immediately
-            flashcards = [];
-            const container = document.getElementById('flashcardsGrid');
-            container.innerHTML = '<div class="card" style="grid-column: 1 / -1; text-align: center; padding: 60px;"><div style="font-size: 32px; margin-bottom: 16px;">⏳</div><p style="color: var(--text-muted);">Generating flashcards for ' + subjectName + '...</p></div>';
+            // Check if subject already has flashcards
+            const subjectFlashcards = flashcards.filter(f => f.subject === subjectName);
             
-            // Auto-generate new flashcards for this subject
-            setTimeout(() => autoGenerateFlashcards(subjectName), 100);
+            if (subjectFlashcards.length > 0) {
+                // Start study mode directly
+                startFlashcardStudy(subjectName);
+            } else {
+                // Generate flashcards first
+                const subjectsContainer = document.getElementById('flashcardSubjects');
+                const studyModeContainer = document.getElementById('flashcardStudyMode');
+                if (subjectsContainer) subjectsContainer.style.display = 'none';
+                if (studyModeContainer) studyModeContainer.style.display = 'block';
+                
+                const container = document.getElementById('flashcardsGrid');
+                container.innerHTML = '<div class="card" style="grid-column: 1 / -1; text-align: center; padding: 60px;"><div style="font-size: 32px; margin-bottom: 16px;">⏳</div><p style="color: var(--text-muted);">Generating flashcards for ' + subjectName + '...</p></div>';
+                
+                setTimeout(() => autoGenerateFlashcards(subjectName), 100);
+            }
         }
 
         async function autoGenerateFlashcards(subjectName) {
