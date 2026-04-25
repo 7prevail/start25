@@ -1627,18 +1627,20 @@
                 
                 const plan = data.choices[0].message.content;
                 
-                // Post-process: remove any text before the first numbered item
-                const firstItemMatch = plan.match(/\d+\)/);
-                if (firstItemMatch) {
-                    const formattedPlan = plan.substring(plan.indexOf(firstItemMatch[0]));
-                    // Clean up: remove extra blank lines, ensure single blank line between items
-                    const cleaned = formattedPlan
-                        .replace(/\n\s*\n\s*\n+/g, '\n\n')  // Remove multiple blank lines
-                        .replace(/^\s+|\s+$/g, '')          // Trim start/end
-                        .replace(/(\d+\))\s*/g, '$1 ')      // Ensure space after number
-                        .trim();
-                    planContainer.textContent = cleaned;
+                // Extract all numbered items and reformat cleanly
+                const items = plan.match(/\d+\)[\s\S]*?(?=\d+\)|$)/g);
+                if (items && items.length > 0) {
+                    const cleanedItems = items.map(item => {
+                        // Remove the number prefix and clean up the text
+                        const text = item.replace(/^\d+\)\s*/, '').trim();
+                        // Remove extra whitespace within the item
+                        return text.replace(/\s+/g, ' ');
+                    });
+                    // Join with single blank lines
+                    const formatted = cleanedItems.map((item, i) => `${i + 1}) ${item}`).join('\n\n');
+                    planContainer.textContent = formatted;
                 } else {
+                    // Fallback: just show the raw response
                     planContainer.textContent = plan;
                 }
                 renderMath(planContainer);
