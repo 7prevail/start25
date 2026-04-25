@@ -3679,7 +3679,8 @@ Return ONLY the JSON array.`;
                 card.onmouseout = () => card.style.background = 'var(--surface)';
                 card.onclick = () => {
                     if (subjectFlashcards.length === 0) {
-                        showAlert('No Flashcards', 'Go to "' + escapeHtml(subject.name) + '" and click Flashcards to generate them first.');
+                        // Auto-generate flashcards
+                        autoGenerateFlashcards(subject.name);
                     } else {
                         startFlashcardStudy(subject.name);
                     }
