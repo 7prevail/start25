@@ -1151,17 +1151,22 @@
             <div style="margin-bottom: 32px;">
                 <h1 class="page-title" style="margin: 0;">Flashcards</h1>
             </div>
-            <div class="flashcards-grid" id="flashcardsGrid">
-                <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 60px;">
-                    <div style="font-size: 48px; font-weight: 200; margin-bottom: 16px;">FC</div>
-                    <p style="color: var(--text-muted);">Add materials to generate flashcards</p>
-                </div>
+            
+            <!-- Subject Selection View -->
+            <div id="flashcardSubjects" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Subject cards rendered here -->
             </div>
-            <div class="study-controls" id="studyControls" style="display: none;">
-                <button class="btn" onclick="prevCard()">< Previous</button>
-                <span id="cardCounter" style="padding: 12px; color: var(--text-muted);">1 / 5</span>
-                <button class="btn" onclick="nextCard()">Next ></button>
-                <button class="btn btn-primary" onclick="toggleStudyMode()">Exit Study</button>
+            
+            <!-- Study Mode View -->
+            <div id="flashcardStudyMode" style="display: none;">
+                <button onclick="exitFlashcardStudy()" style="margin-bottom: 16px; padding: 8px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text);">← Back to Subjects</button>
+                <div class="flashcards-grid" id="flashcardsGrid"></div>
+                <div class="study-controls" id="studyControls" style="display: none;">
+                    <button class="btn" onclick="prevCard()">< Previous</button>
+                    <span id="cardCounter" style="padding: 12px; color: var(--text-muted);">1 / 5</span>
+                    <button class="btn" onclick="nextCard()">Next ></button>
+                    <button class="btn btn-primary" onclick="toggleStudyMode()">Exit Study</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1186,7 +1191,7 @@
                         </div>
                     </div>
                 </div>
-                <div style="width: 200px; flex-shrink: 0;">
+                <div style="width: 350px; flex-shrink: 0;">
                     <div style="margin-bottom: 12px;">
                         <label style="font-size: 14px; color: var(--text-muted); display: block; margin-bottom: 8px;">Subject</label>
                         <select id="studyGuideSubject" class="input" style="width: 100%; font-size: 16px; padding: 14px;" onchange="onStudyGuideSubjectChange()">
@@ -3648,22 +3653,80 @@ Return ONLY the JSON array.`;
         let cardRevealed = false;
 
         function renderFlashcards() {
-            const container = document.getElementById('flashcardsGrid');
-            if (!container) return;
+            const subjectsContainer = document.getElementById('flashcardSubjects');
+            const studyModeContainer = document.getElementById('flashcardStudyMode');
             
-            if (flashcards.length === 0) {
-                container.innerHTML = '<div class="card" style="grid-column: 1 / -1; text-align: center; padding: 60px;"><div style="font-size: 48px; font-weight: 200; margin-bottom: 16px;">FC</div><p style="color: var(--text-muted);">Go to a subject and click Flashcards to generate</p></div>';
+            if (!subjectsContainer || !studyModeContainer) return;
+            
+            // Show subject selection view
+            subjectsContainer.style.display = 'flex';
+            studyModeContainer.style.display = 'none';
+            
+            // Get unique subjects from flashcards
+            const uniqueSubjects = [...new Set(flashcards.map(f => f.subject))];
+            
+            if (uniqueSubjects.length === 0) {
+                subjectsContainer.innerHTML = '<div class="card" style="text-align: center; padding: 60px;"><div style="font-size: 48px; font-weight: 200; margin-bottom: 16px;">FC</div><p style="color: var(--text-muted);">Go to a subject and click Flashcards to generate</p></div>';
                 return;
             }
             
-            // Always show study mode - one card at a time
-            const card = flashcards[currentCardIndex];
+            // Render subject cards
+            subjectsContainer.innerHTML = '';
+            uniqueSubjects.forEach(subject => {
+                const subjectFlashcards = flashcards.filter(f => f.subject === subject);
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.cssText = 'padding: 20px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;';
+                card.onmouseover = () => card.style.background = 'var(--surface-2)';
+                card.onmouseout = () => card.style.background = 'var(--surface)';
+                card.onclick = () => startFlashcardStudy(subject);
+                
+                card.innerHTML = `
+                    <div>
+                        <h3 style="margin: 0 0 4px 0; font-size: 16px;">${escapeHtml(subject)}</h3>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-muted);">${subjectFlashcards.length} flashcards</p>
+                    </div>
+                    <span style="color: var(--text-muted);">→</span>
+                `;
+                subjectsContainer.appendChild(card);
+            });
+        }
+        
+        function startFlashcardStudy(subject) {
+            const subjectsContainer = document.getElementById('flashcardSubjects');
+            const studyModeContainer = document.getElementById('flashcardStudyMode');
+            
+            subjectsContainer.style.display = 'none';
+            studyModeContainer.style.display = 'block';
+            
+            // Filter flashcards by subject
+            const subjectFlashcards = flashcards.filter(f => f.subject === subject);
+            
+            // Reset study state
+            currentCardIndex = 0;
+            cardRevealed = false;
+            
+            // Render first card
+            const container = document.getElementById('flashcardsGrid');
+            const card = subjectFlashcards[currentCardIndex];
             container.innerHTML = renderStudyCard(card);
             document.getElementById('studyControls').style.display = 'flex';
-            document.getElementById('cardCounter').textContent = (currentCardIndex + 1) + ' / ' + flashcards.length;
+            document.getElementById('cardCounter').textContent = (currentCardIndex + 1) + ' / ' + subjectFlashcards.length;
             
-            // Render math equations with KaTeX
+            // Store filtered flashcards for navigation
+            window.activeFlashcards = subjectFlashcards;
+            
             setTimeout(() => renderMath(container), 100);
+        }
+        
+        function exitFlashcardStudy() {
+            const subjectsContainer = document.getElementById('flashcardSubjects');
+            const studyModeContainer = document.getElementById('flashcardStudyMode');
+            
+            subjectsContainer.style.display = 'flex';
+            studyModeContainer.style.display = 'none';
+            
+            window.activeFlashcards = null;
         }
 
         function renderStudyCard(card) {
@@ -3734,14 +3797,15 @@ Return ONLY the JSON array.`;
 
         function rateCard(rating) {
             // Store rating (optional tracking)
-            const card = flashcards[currentCardIndex];
+            const activeCards = window.activeFlashcards || flashcards;
+            const card = activeCards[currentCardIndex];
             card.lastRating = rating;
             
             // Move to next card
             cardRevealed = false;
-            if (currentCardIndex < flashcards.length - 1) {
+            if (currentCardIndex < activeCards.length - 1) {
                 currentCardIndex++;
-                renderFlashcards();
+                renderActiveFlashcards();
             } else {
                 // End of deck - show completion
                 showStudyComplete();
@@ -3752,21 +3816,22 @@ Return ONLY the JSON array.`;
             // Award XP for completing flashcard session
             addXP(30);
             
+            const activeCards = window.activeFlashcards || flashcards;
             const container = document.getElementById('flashcardsGrid');
             container.innerHTML = '<div class="card" style="grid-column: 1 / -1; text-align: center; padding: 60px;">' +
                 '<div style="font-size: 48px; margin-bottom: 16px;">🎉</div>' +
                 '<h3 style="margin-bottom: 12px;">Study Complete!</h3>' +
-                '<p style="color: var(--text-muted); margin-bottom: 8px;">You\'ve reviewed all ' + flashcards.length + ' cards</p>' +
+                '<p style="color: var(--text-muted); margin-bottom: 8px;">You\'ve reviewed all ' + activeCards.length + ' cards</p>' +
                 '<p style="color: var(--success); font-size: 14px; font-weight: 600; margin-bottom: 24px;">+30 XP Earned!</p>' +
                 '<button class="btn btn-primary" onclick="restartStudy()" style="margin-right: 12px;">Study Again</button>' +
-                '<button class="btn" onclick="toggleStudyMode()">Grid View</button>' +
+                '<button class="btn" onclick="exitFlashcardStudy()">Back to Subjects</button>' +
                 '</div>';
         }
 
         function restartStudy() {
             currentCardIndex = 0;
             cardRevealed = false;
-            renderFlashcards();
+            renderActiveFlashcards();
         }
         
         function toggleStudyMode() {
@@ -3797,17 +3862,31 @@ Return ONLY the JSON array.`;
         }
 
 
+        function renderActiveFlashcards() {
+            const activeCards = window.activeFlashcards || flashcards;
+            const container = document.getElementById('flashcardsGrid');
+            if (!container) return;
+            
+            const card = activeCards[currentCardIndex];
+            container.innerHTML = renderStudyCard(card);
+            document.getElementById('studyControls').style.display = 'flex';
+            document.getElementById('cardCounter').textContent = (currentCardIndex + 1) + ' / ' + activeCards.length;
+            
+            setTimeout(() => renderMath(container), 100);
+        }
+
         function nextCard() {
-            if (currentCardIndex < flashcards.length - 1) {
+            const activeCards = window.activeFlashcards || flashcards;
+            if (currentCardIndex < activeCards.length - 1) {
                 currentCardIndex++;
-                renderFlashcards();
+                renderActiveFlashcards();
             }
         }
 
         function prevCard() {
             if (currentCardIndex > 0) {
                 currentCardIndex--;
-                renderFlashcards();
+                renderActiveFlashcards();
             }
         }
 
