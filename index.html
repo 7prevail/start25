@@ -1631,9 +1631,13 @@
                 const firstItemMatch = plan.match(/\d+\)/);
                 if (firstItemMatch) {
                     const formattedPlan = plan.substring(plan.indexOf(firstItemMatch[0]));
-                    // Add line breaks between numbered items
-                    const withBreaks = formattedPlan.replace(/(\d+\))/g, '\n$1').trim();
-                    planContainer.textContent = withBreaks;
+                    // Clean up: remove extra blank lines, ensure single blank line between items
+                    const cleaned = formattedPlan
+                        .replace(/\n\s*\n\s*\n+/g, '\n\n')  // Remove multiple blank lines
+                        .replace(/^\s+|\s+$/g, '')          // Trim start/end
+                        .replace(/(\d+\))\s*/g, '$1 ')      // Ensure space after number
+                        .trim();
+                    planContainer.textContent = cleaned;
                 } else {
                     planContainer.textContent = plan;
                 }
