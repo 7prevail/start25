@@ -3835,13 +3835,15 @@ Return ONLY the JSON array.`;
             addXP(30);
             
             const activeCards = window.activeFlashcards || flashcards;
+            const currentSubjectName = activeCards[0]?.subject || currentSubject;
             const container = document.getElementById('flashcardsGrid');
             container.innerHTML = '<div class="card" style="grid-column: 1 / -1; text-align: center; padding: 60px;">' +
                 '<div style="font-size: 48px; margin-bottom: 16px;">🎉</div>' +
                 '<h3 style="margin-bottom: 12px;">Study Complete!</h3>' +
                 '<p style="color: var(--text-muted); margin-bottom: 8px;">You\'ve reviewed all ' + activeCards.length + ' cards</p>' +
                 '<p style="color: var(--success); font-size: 14px; font-weight: 600; margin-bottom: 24px;">+30 XP Earned!</p>' +
-                '<button class="btn btn-primary" onclick="restartStudy()" style="margin-right: 12px;">Study Again</button>' +
+                '<button class="btn btn-primary" onclick="restartStudy()" style="margin-right: 8px;">Study Again</button>' +
+                '<button class="btn" onclick="autoGenerateFlashcards(\'' + escapeHtml(currentSubjectName) + '\')" style="margin-right: 8px;">Regenerate</button>' +
                 '<button class="btn" onclick="exitFlashcardStudy()">Back to Subjects</button>' +
                 '</div>';
         }
