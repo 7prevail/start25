@@ -1938,9 +1938,8 @@
             const progressText = document.getElementById('aiStudyProgress');
             
             if (aiStudyIndex >= aiStudyQuestions.length) {
-                // Quiz complete
-                questionContainer.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🎉</div><h3>Quiz Complete!</h3><p style="color: var(--text-muted);">Continue studying to reach 100% progress.</p><button class="btn btn-primary" onclick="startAIStudy()" style="margin-top: 16px;">New Quiz</button></div>';
-                optionsContainer.innerHTML = '';
+                // Auto-generate new questions
+                startAIStudy();
                 return;
             }
             
