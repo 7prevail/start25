@@ -143,6 +143,9 @@
             } catch (e) {
                 console.error('⚠️ Firebase error:', e.message);
             }
+            
+            // Initialize subject levels after data is loaded
+            initializeSubjectLevels();
         }
 
         // Try immediately (CDN scripts are synchronous so should be ready)
@@ -1053,9 +1056,19 @@
             </div>
             <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
                 <div style="width: 56px; height: 56px; background: var(--surface-2); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px;">📚</div>
-                <div>
+                <div style="flex: 1;">
                     <h1 class="page-title" id="subjectTitle" style="margin: 0;">Subject</h1>
                     <div style="font-size: 14px; color: var(--text-muted);" id="subjectMaterialsCount">0 materials</div>
+                    <div style="margin-top: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <span style="font-size: 12px; font-weight: 600; color: var(--accent);" id="subjectLevel">Level 1</span>
+                            <span style="font-size: 12px; color: var(--text-muted);" id="subjectXP">0 XP</span>
+                        </div>
+                        <div style="width: 100%; height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden;">
+                            <div id="subjectProgressBar" style="height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; width: 0%;"></div>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" id="subjectProgressText">0% to next level</div>
+                    </div>
                 </div>
             </div>
             
@@ -1389,11 +1402,51 @@
                 </button>
             </div>
             <h1 class="page-title">Start Study</h1>
-            <div id="startStudyContent">
-                <div class="card" style="text-align: center; padding: 60px;">
-                    <div style="font-size: 48px; font-weight: 200; margin-bottom: 16px;">▶</div>
-                    <p style="color: var(--text-muted); margin-bottom: 24px;">Select a subject to start studying</p>
-                    <div id="subjectButtons" style="display: flex; flex-direction: column; gap: 12px; max-width: 300px; margin: 0 auto;"></div>
+            
+            <!-- Mode Selection -->
+            <div id="studyModeSelection" style="margin-bottom: 24px;">
+                <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                    <button id="selfStudyBtn" class="btn btn-primary" onclick="selectStudyMode('self')" style="flex: 1;">Self-Study</button>
+                    <button id="aiStudyBtn" class="btn" onclick="selectStudyMode('ai')" style="flex: 1;">AI Study</button>
+                </div>
+            </div>
+            
+            <!-- Self-Study Content -->
+            <div id="selfStudyContent">
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px; font-size: 16px;">Select Subject</h3>
+                    <select id="selfStudySubject" class="input" style="width: 100%; margin-bottom: 16px;">
+                        <option value="">Choose a subject...</option>
+                    </select>
+                    <h3 style="margin-bottom: 16px; font-size: 16px;">Topic</h3>
+                    <input type="text" id="selfStudyTopic" class="input" style="width: 100%; margin-bottom: 16px;" placeholder="e.g., Calculus derivatives">
+                    <button class="btn btn-primary" onclick="generateSelfStudyTasks()" style="width: 100%;">Generate Task List</button>
+                </div>
+                <div id="selfStudyTasks" class="card" style="display: none;">
+                    <h3 style="margin-bottom: 16px; font-size: 16px;">Your Study Tasks</h3>
+                    <div id="taskList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                </div>
+            </div>
+            
+            <!-- AI-Study Content -->
+            <div id="aiStudyContent" style="display: none;">
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px; font-size: 16px;">Select Subject</h3>
+                    <select id="aiStudySubject" class="input" style="width: 100%; margin-bottom: 16px;">
+                        <option value="">Choose a subject...</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="startAIStudy()" style="width: 100%;">Start AI Quiz</button>
+                </div>
+                <div id="aiStudyQuiz" class="card" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="margin: 0; font-size: 16px;">AI Study Quiz</h3>
+                        <span id="aiStudyProgress" style="font-size: 14px; color: var(--text-muted);">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: var(--surface-2); border-radius: 4px; margin-bottom: 24px; overflow: hidden;">
+                        <div id="aiStudyProgressBar" style="height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; width: 0%;"></div>
+                    </div>
+                    <div id="aiStudyQuestion"></div>
+                    <div id="aiStudyOptions" style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;"></div>
                 </div>
             </div>
         </div>
@@ -1452,6 +1505,111 @@
         let focusTasks = [];
         let currentFocusSession = null;
         // db is set as window.db by initFirebase() in the head — accessible here as global
+
+        // Initialize subject level data
+        function initializeSubjectLevels() {
+            subjects = subjects.map(subject => ({
+                ...subject,
+                level: subject.level || 1,
+                xp: subject.xp || 0,
+                progress: subject.progress || 0
+            }));
+            saveSubjects();
+        }
+
+        // Add progress to subject (for AI-study mode)
+        function addSubjectProgress(subjectName, amount) {
+            const subject = subjects.find(s => s.name === subjectName);
+            if (!subject) return;
+
+            subject.progress = Math.max(0, Math.min(100, (subject.progress || 0) + amount));
+            
+            // Check for level up at 100%
+            if (subject.progress >= 100 && subject.level < 10) {
+                subject.level = (subject.level || 1) + 1;
+                subject.xp = (subject.xp || 0) + 100;
+                subject.progress = 0;
+                showLevelUp(subject.name, subject.level);
+            }
+            
+            saveSubjects();
+            updateSubjectLevelUI(subjectName);
+        }
+
+        // Add XP to subject (for flashcards, etc.)
+        function addSubjectXP(subjectName, amount) {
+            const subject = subjects.find(s => s.name === subjectName);
+            if (!subject) return;
+
+            subject.xp = (subject.xp || 0) + amount;
+            saveSubjects();
+            updateSubjectLevelUI(subjectName);
+        }
+
+        // Show level up animation
+        function showLevelUp(subjectName, newLevel) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 3000; display: flex; align-items: center; justify-content: center;';
+            modal.innerHTML = `
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; max-width: 400px; animation: levelUp 0.5s ease-out;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+                    <h2 style="margin: 0 0 8px 0; font-size: 24px;">Level Up!</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 8px;">${escapeHtml(subjectName)}</p>
+                    <p style="font-size: 32px; font-weight: 700; color: var(--accent); margin: 16px 0;">Level ${newLevel}</p>
+                    ${newLevel === 10 ? '<p style="color: #ffd700; font-weight: 600;">🏆 Mastered!</p>' : ''}
+                    <button class="btn btn-primary" onclick="this.closest('div').parentElement.remove()" style="margin-top: 24px;">Continue</button>
+                </div>
+                <style>@keyframes levelUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }</style>
+            `;
+            document.body.appendChild(modal);
+            
+            // Confetti effect
+            createConfetti();
+        }
+
+        // Simple confetti effect
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3', '#f38181'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.cssText = `
+                    position: fixed; width: 10px; height: 10px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    left: ${Math.random() * 100}vw; top: -10px;
+                    z-index: 3001; pointer-events: none;
+                    animation: fall ${2 + Math.random() * 2}s linear forwards;
+                `;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 4000);
+            }
+            const style = document.createElement('style');
+            style.textContent = '@keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }';
+            document.head.appendChild(style);
+            setTimeout(() => style.remove(), 4000);
+        }
+
+        // Update subject level UI
+        function updateSubjectLevelUI(subjectName) {
+            const subject = subjects.find(s => s.name === subjectName);
+            if (!subject) return;
+
+            // Update progress bar if visible
+            const progressBar = document.getElementById(`progress-${subjectName.replace(/\s/g, '-')}`);
+            if (progressBar) {
+                progressBar.style.width = subject.progress + '%';
+            }
+
+            // Update level badge
+            const levelBadge = document.getElementById(`level-${subjectName.replace(/\s/g, '-')}`);
+            if (levelBadge) {
+                levelBadge.textContent = `Lvl ${subject.level}`;
+            }
+        }
+
+        // Save subjects to localStorage
+        function saveSubjects() {
+            localStorage.setItem('start25_subjects', JSON.stringify(subjects));
+        }
 
         // ── Security utilities ─────────────────────────────────────────────────
 
@@ -1587,27 +1745,229 @@
         }
         
         function renderStartStudy() {
-            const container = document.getElementById('subjectButtons');
-            if (!container) return;
+            // Populate subject dropdowns
+            const selfSelect = document.getElementById('selfStudySubject');
+            const aiSelect = document.getElementById('aiStudySubject');
             
-            container.innerHTML = '';
+            if (selfSelect) {
+                selfSelect.innerHTML = '<option value="">Choose a subject...</option>';
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.name;
+                    option.textContent = subject.name;
+                    selfSelect.appendChild(option);
+                });
+            }
             
-            if (subjects.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted);">No subjects yet. Add one from Home.</p>';
+            if (aiSelect) {
+                aiSelect.innerHTML = '<option value="">Choose a subject...</option>';
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.name;
+                    option.textContent = subject.name;
+                    aiSelect.appendChild(option);
+                });
+            }
+            
+            // Default to self-study mode
+            selectStudyMode('self');
+        }
+        
+        function selectStudyMode(mode) {
+            const selfBtn = document.getElementById('selfStudyBtn');
+            const aiBtn = document.getElementById('aiStudyBtn');
+            const selfContent = document.getElementById('selfStudyContent');
+            const aiContent = document.getElementById('aiStudyContent');
+            
+            if (mode === 'self') {
+                selfBtn.className = 'btn btn-primary';
+                aiBtn.className = 'btn';
+                selfContent.style.display = 'block';
+                aiContent.style.display = 'none';
+            } else {
+                selfBtn.className = 'btn';
+                aiBtn.className = 'btn btn-primary';
+                selfContent.style.display = 'none';
+                aiContent.style.display = 'block';
+            }
+        }
+        
+        async function generateSelfStudyTasks() {
+            const subjectName = document.getElementById('selfStudySubject').value;
+            const topic = document.getElementById('selfStudyTopic').value;
+            
+            if (!subjectName) {
+                showAlert('No Subject', 'Please select a subject first.');
                 return;
             }
             
-            subjects.forEach(subject => {
-                const btn = document.createElement('button');
-                btn.className = 'btn';
-                btn.style.cssText = 'text-align: left; justify-content: flex-start;';
-                btn.textContent = subject.name;
-                btn.onclick = () => {
-                    currentSubject = subject.name;
-                    showPage('subject');
-                };
-                container.appendChild(btn);
-            });
+            if (!topic) {
+                showAlert('No Topic', 'Please enter a topic to study.');
+                return;
+            }
+            
+            const subject = subjects.find(s => s.name === subjectName);
+            if (!subject) return;
+            
+            const taskList = document.getElementById('taskList');
+            const tasksContainer = document.getElementById('selfStudyTasks');
+            
+            tasksContainer.style.display = 'block';
+            taskList.innerHTML = '<p style="color: var(--text-muted);">Generating tasks...</p>';
+            
+            try {
+                const materialsText = subject.materials && subject.materials.length > 0 
+                    ? subject.materials.map(m => (m.content || m.url || m.name).substring(0, 1000)).join('\n\n')
+                    : 'No materials available';
+                
+                const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer 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'
+                    },
+                    body: JSON.stringify({
+                        model: 'llama-3.1-8b-instant',
+                        messages: [
+                            { role: 'system', content: 'You are a study advisor. Create a broad, actionable task list for studying a specific topic. The student wants to study: ' + topic + ' in ' + subjectName + '. Create 6-8 specific tasks that cover different aspects of the topic. Each task should be clear and actionable. CRITICAL: Your ENTIRE response must be ONLY the numbered list. Start immediately with "1)" - do NOT include any introduction/preamble. Format: each item on its own line, single blank line between items. Example:\n1) First task\n2) Second task\n3) Third task\n\nDo NOT use bold markdown. Keep it concise.' },
+                            { role: 'user', content: `Subject: ${subjectName}\nTopic: ${topic}\n\nMaterials:\n${materialsText}` }
+                        ],
+                        temperature: 0.6
+                    })
+                });
+                
+                if (!r.ok) {
+                    taskList.innerHTML = '<p style="color: var(--error);">Error generating tasks.</p>';
+                    return;
+                }
+                
+                const data = await r.json();
+                const tasks = data.choices[0].message.content;
+                
+                // Parse and render tasks
+                const items = tasks.match(/\d+[.)]\s[\s\S]*?(?=\d+[.)]\s|$)/g);
+                if (items && items.length > 0) {
+                    taskList.innerHTML = items.map((item, i) => {
+                        const text = item.replace(/^\d+[.)]\s*/, '').replace(/\s+/g, ' ').trim();
+                        const id = 'task-' + i;
+                        return `<label for="${id}" style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--surface-2);border-radius:10px;cursor:pointer;">
+                            <input type="checkbox" id="${id}" style="margin-top:3px;accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;" onchange="if(this.checked) addSubjectXP('${subjectName}', 5);">
+                            <span style="font-size:14px;line-height:1.6;">${text}</span>
+                        </label>`;
+                    }).join('');
+                } else {
+                    taskList.innerHTML = '<p style="color: var(--text-muted);">' + tasks.replace(/\n/g, '<br>') + '</p>';
+                }
+            } catch (e) {
+                taskList.innerHTML = '<p style="color: var(--error);">Error: ' + e.message + '</p>';
+            }
+        }
+        
+        let aiStudyQuestions = [];
+        let aiStudyIndex = 0;
+        
+        async function startAIStudy() {
+            const subjectName = document.getElementById('aiStudySubject').value;
+            
+            if (!subjectName) {
+                showAlert('No Subject', 'Please select a subject first.');
+                return;
+            }
+            
+            const subject = subjects.find(s => s.name === subjectName);
+            if (!subject) return;
+            
+            const quizContainer = document.getElementById('aiStudyQuiz');
+            const questionContainer = document.getElementById('aiStudyQuestion');
+            const optionsContainer = document.getElementById('aiStudyOptions');
+            
+            quizContainer.style.display = 'block';
+            questionContainer.innerHTML = '<p style="color: var(--text-muted);">Generating questions...</p>';
+            optionsContainer.innerHTML = '';
+            
+            try {
+                const materialsText = subject.materials && subject.materials.length > 0 
+                    ? subject.materials.map(m => (m.content || m.url || m.name).substring(0, 1000)).join('\n\n')
+                    : 'No materials available';
+                
+                const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer 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'
+                    },
+                    body: JSON.stringify({
+                        model: 'llama-3.1-8b-instant',
+                        messages: [
+                            { role: 'system', content: 'You are a quiz generator. Create 5 multiple choice questions about the subject materials. Return ONLY valid JSON in this exact format: [{"question": "question text", "options": ["A", "B", "C", "D"], "correct": 0}]. The "correct" field is the index (0-3) of the correct answer. No other text.' },
+                            { role: 'user', content: `Subject: ${subjectName}\n\nMaterials:\n${materialsText}` }
+                        ],
+                        temperature: 0.6
+                    })
+                });
+                
+                if (!r.ok) {
+                    questionContainer.innerHTML = '<p style="color: var(--error);">Error generating questions.</p>';
+                    return;
+                }
+                
+                const data = await r.json();
+                const response = data.choices[0].message.content;
+                
+                // Parse JSON response
+                const jsonMatch = response.match(/\[[\s\S]*\]/);
+                if (jsonMatch) {
+                    aiStudyQuestions = JSON.parse(jsonMatch[0]);
+                    aiStudyIndex = 0;
+                    renderAIStudyQuestion(subjectName);
+                } else {
+                    questionContainer.innerHTML = '<p style="color: var(--error);">Could not parse questions.</p>';
+                }
+            } catch (e) {
+                questionContainer.innerHTML = '<p style="color: var(--error);">Error: ' + e.message + '</p>';
+            }
+        }
+        
+        function renderAIStudyQuestion(subjectName) {
+            const subject = subjects.find(s => s.name === subjectName);
+            if (!subject) return;
+            
+            const questionContainer = document.getElementById('aiStudyQuestion');
+            const optionsContainer = document.getElementById('aiStudyOptions');
+            const progressBar = document.getElementById('aiStudyProgressBar');
+            const progressText = document.getElementById('aiStudyProgress');
+            
+            if (aiStudyIndex >= aiStudyQuestions.length) {
+                // Quiz complete
+                questionContainer.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🎉</div><h3>Quiz Complete!</h3><p style="color: var(--text-muted);">Continue studying to reach 100% progress.</p><button class="btn btn-primary" onclick="startAIStudy()" style="margin-top: 16px;">New Quiz</button></div>';
+                optionsContainer.innerHTML = '';
+                return;
+            }
+            
+            const q = aiStudyQuestions[aiStudyIndex];
+            
+            questionContainer.innerHTML = `<p style="font-size: 16px; line-height: 1.6;">${escapeHtml(q.question)}</p>`;
+            
+            optionsContainer.innerHTML = q.options.map((opt, i) => `
+                <button class="btn" onclick="answerAIStudy('${subjectName}', ${i}, ${q.correct})" style="text-align: left; justify-content: flex-start;">
+                    ${escapeHtml(opt)}
+                </button>
+            `).join('');
+            
+            // Update progress bar
+            progressBar.style.width = subject.progress + '%';
+            progressText.textContent = subject.progress + '%';
+        }
+        
+        function answerAIStudy(subjectName, selected, correct) {
+            if (selected === correct) {
+                addSubjectProgress(subjectName, 10);
+            } else {
+                addSubjectProgress(subjectName, -1);
+            }
+            
+            aiStudyIndex++;
+            renderAIStudyQuestion(subjectName);
         }
         
         function onStudyGuideSubjectChange() {
@@ -2205,8 +2565,15 @@
             name.style.cssText = 'font-weight: 600; font-size: 15px; line-height: 1.3;';
             name.textContent = subject.name;
             
+            // Level badge
+            const levelBadge = document.createElement('div');
+            levelBadge.id = `level-${subject.name.replace(/\s/g, '-')}`;
+            levelBadge.style.cssText = 'font-size: 11px; font-weight: 600; color: var(--accent); background: var(--surface-2); padding: 2px 8px; border-radius: 8px; display: inline-block; margin-top: 4px;';
+            levelBadge.textContent = `Lvl ${subject.level || 1}`;
+            
             topSection.appendChild(icon);
             topSection.appendChild(name);
+            topSection.appendChild(levelBadge);
             
             // Add emoji click listener
             icon.addEventListener('click', (e) => {
@@ -2468,6 +2835,24 @@
             // Update subject page content
             document.getElementById('subjectTitle').textContent = subject.name;
             document.getElementById('subjectMaterialsCount').textContent = (subject.materials?.length || 0) + ' materials';
+            
+            // Update level and progress
+            const level = subject.level || 1;
+            const xp = subject.xp || 0;
+            const progress = subject.progress || 0;
+            
+            document.getElementById('subjectLevel').textContent = `Level ${level}`;
+            document.getElementById('subjectXP').textContent = `${xp} XP`;
+            document.getElementById('subjectProgressBar').style.width = progress + '%';
+            document.getElementById('subjectProgressText').textContent = level >= 10 ? 'Mastered!' : `${progress}% to next level`;
+            
+            // Add gold border for mastered subjects
+            const progressBar = document.getElementById('subjectProgressBar');
+            if (level >= 10) {
+                progressBar.style.background = '#ffd700';
+            } else {
+                progressBar.style.background = 'var(--accent)';
+            }
             
             // Load study guide
             document.getElementById('studyGuide').value = subject.studyGuide || '';
@@ -3878,6 +4263,16 @@ Return ONLY the JSON array.`;
             const card = activeCards[currentCardIndex];
             card.lastRating = rating;
             
+            // Award XP based on rating
+            const subjectName = card.subject || currentSubject;
+            if (rating === 'knowWell') {
+                addSubjectXP(subjectName, 5);
+            } else if (rating === 'kindaKnow') {
+                addSubjectXP(subjectName, 3);
+            } else if (rating === 'dontKnow') {
+                addSubjectXP(subjectName, 1);
+            }
+            
             // Move to next card
             cardRevealed = false;
             if (currentCardIndex < activeCards.length - 1) {
@@ -4809,9 +5204,11 @@ Return ONLY the JSON array.`;
             quizSubmitted = true;
             quizScore = 0;
             
-            // Calculate score
+            // Calculate score and award XP
             currentQuiz.forEach((q, idx) => {
                 const userAnswer = quizUserAnswers[idx];
+                let isCorrect = false;
+                
                 if (q.type === 'short_answer') {
                     // Simple string match for short answer
                     if (userAnswer && q.answer && (
@@ -4819,15 +5216,22 @@ Return ONLY the JSON array.`;
                         q.answer.toLowerCase().includes(userAnswer.toLowerCase())
                     )) {
                         quizScore++;
+                        isCorrect = true;
                     } else if (userAnswer) {
                         recordWeakArea(q.subject, q.topic || q.question.substring(0, 50));
                     }
                 } else {
                     if (userAnswer === q.correct) {
                         quizScore++;
+                        isCorrect = true;
                     } else if (userAnswer !== undefined) {
                         recordWeakArea(q.subject, q.topic || q.question.substring(0, 50));
                     }
+                }
+                
+                // Award XP for correct answers
+                if (isCorrect && q.subject) {
+                    addSubjectXP(q.subject, 10);
                 }
             });
             
