@@ -1378,6 +1378,27 @@
         </div>
     </div>
 
+    <!-- PAGE 9: Start Study -->
+    <div class="page" id="page-startstudy">
+        <div class="container">
+            <div class="header">
+                <div class="brand">start25</div>
+                <button class="profile-pill" onclick="showPage('settings')">
+                    <div class="avatar">U</div>
+                    <span>Profile</span>
+                </button>
+            </div>
+            <h1 class="page-title">Start Study</h1>
+            <div id="startStudyContent">
+                <div class="card" style="text-align: center; padding: 60px;">
+                    <div style="font-size: 48px; font-weight: 200; margin-bottom: 16px;">▶</div>
+                    <p style="color: var(--text-muted); margin-bottom: 24px;">Select a subject to start studying</p>
+                    <div id="subjectButtons" style="display: flex; flex-direction: column; gap: 12px; max-width: 300px; margin: 0 auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Nav -->
     <div class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" data-page="home">
@@ -1397,6 +1418,12 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
             </span>
             Guides
+        </button>
+        <button class="nav-item" onclick="showPage('startstudy')" data-page="startstudy">
+            <span class="nav-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </span>
+            Start Study
         </button>
         <button class="nav-item" onclick="showPage('chat')" data-page="chat">
             <span class="nav-icon">
@@ -1479,6 +1506,8 @@
                 renderLeaderboard();
             } else if (page === 'studyguides') {
                 renderStudyGuides();
+            } else if (page === 'startstudy') {
+                renderStartStudy();
             }
             
             // Update URL without reloading (clean URLs on host, hash on file://)
@@ -1519,7 +1548,7 @@
             
             // Check if it's a valid page
             const validPages = ['home', 'quiz', 'flashcards', 'leaderboard', 'settings',
-                'studyguides', 'progress', 'chat', 'subject', 'studyguideview', 'onboarding'];
+                'studyguides', 'progress', 'chat', 'subject', 'studyguideview', 'onboarding', 'startstudy'];
             if (validPages.includes(path)) return path;
             
             return 'home';
@@ -1554,6 +1583,30 @@
                 option.value = subject.name;
                 option.textContent = subject.name;
                 select.appendChild(option);
+            });
+        }
+        
+        function renderStartStudy() {
+            const container = document.getElementById('subjectButtons');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (subjects.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted);">No subjects yet. Add one from Home.</p>';
+                return;
+            }
+            
+            subjects.forEach(subject => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.style.cssText = 'text-align: left; justify-content: flex-start;';
+                btn.textContent = subject.name;
+                btn.onclick = () => {
+                    currentSubject = subject.name;
+                    showPage('subject');
+                };
+                container.appendChild(btn);
             });
         }
         
