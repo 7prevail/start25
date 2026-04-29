@@ -966,62 +966,131 @@
 
     <!-- PAGE 1: Onboarding -->
     <div class="page" id="page-onboarding">
-        <div class="container">
+        <div class="container" style="max-width: 500px;">
             <div class="header">
                 <div class="brand">start25</div>
             </div>
-            <div class="greeting">Welcome</div>
-            <h1 class="headline">What subject are you studying?</h1>
-            <div style="margin-bottom: 24px;">
-                <input type="text" class="input" id="subjectName" placeholder="Subject name" style="width: 100%;">
+            
+            <!-- Progress Steps -->
+            <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 32px;">
+                <div class="onboarding-step" data-step="1" style="width: 32px; height: 4px; background: var(--accent); border-radius: 2px;"></div>
+                <div class="onboarding-step" data-step="2" style="width: 32px; height: 4px; background: var(--border); border-radius: 2px;"></div>
+                <div class="onboarding-step" data-step="3" style="width: 32px; height: 4px; background: var(--border); border-radius: 2px;"></div>
+                <div class="onboarding-step" data-step="4" style="width: 32px; height: 4px; background: var(--border); border-radius: 2px;"></div>
             </div>
             
-            <div id="materialOptions" style="margin-bottom: 16px;">
-                <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">How would you like to add materials?</div>
-                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    <button class="btn" onclick="showMaterialInput('pdf')" style="flex: 1; min-width: 100px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                        <span style="display:flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
-                        <span style="font-size: 13px;">PDF / File</span>
-                    </button>
-                    <button class="btn" onclick="showMaterialInput('youtube')" style="flex: 1; min-width: 100px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                        <span style="display:flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
-                        <span style="font-size: 13px;">YouTube</span>
-                    </button>
-                    <button class="btn" onclick="showMaterialInput('text')" style="flex: 1; min-width: 100px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                        <span style="display:flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></span>
-                        <span style="font-size: 13px;">Paste Text</span>
-                    </button>
+            <!-- Step 1: Welcome -->
+            <div id="onboarding-step-1" class="onboarding-step-content">
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📚</div>
+                    <h1 class="headline" style="margin-bottom: 12px;">Welcome to start25</h1>
+                    <p style="color: var(--text-muted); line-height: 1.6;">Your minimal study companion. Organize subjects, track progress, and stay focused — no bloat, just what you need.</p>
                 </div>
-            </div>
-            
-            <div id="materialInputArea" style="display: none; margin-bottom: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <span id="materialInputLabel" style="font-size: 14px; color: var(--text-muted);"></span>
-                    <button onclick="backToMaterialOptions()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px;">← Back</button>
-                </div>
-                <div id="pdfInput" style="display: none;">
-                    <div id="dropZone" style="border: 2px dashed var(--border); border-radius: 16px; padding: 24px; text-align: center; color: var(--text-muted); cursor: pointer; transition: all 0.2s;" ondragover="event.preventDefault(); this.style.borderColor='var(--accent)'; this.style.background='var(--surface-2)';" ondragleave="this.style.borderColor='var(--border)'; this.style.background='transparent';" ondrop="handleFileDrop(event)" onclick="document.getElementById('fileInput').click()">
-                        <div style="margin-bottom: 8px; display:flex; justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
-                        <div style="font-size: 14px;">Drop PDF here or click to browse</div>
-                        <input type="file" id="fileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt" multiple onchange="handleFileSelect(event)">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--surface-2); border-radius: 12px;">
+                        <span style="font-size: 24px;">📖</span>
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">Subject Management</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Organize your study materials</div>
+                        </div>
                     </div>
-                    <div id="droppedFiles" style="margin-top: 12px; display: none;"></div>
-                </div>
-                <div id="youtubeInput" style="display: none;">
-                    <input type="text" class="input" id="youtubeLink" placeholder="YouTube URL" style="width: 100%;">
-                </div>
-                <div id="textInput" style="display: none;">
-                    <textarea class="input" id="pastedText" placeholder="Paste your notes or study material here" style="width: 100%; min-height: 120px; resize: vertical;"></textarea>
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--surface-2); border-radius: 12px;">
+                        <span style="font-size: 24px;">🎯</span>
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">Focus Sessions</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">25-minute Pomodoro timer</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--surface-2); border-radius: 12px;">
+                        <span style="font-size: 24px;">🏆</span>
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">Progress Tracking</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">XP, levels, and streaks</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div style="margin-bottom: 16px;">
-                <input type="text" class="input" id="materialTags" placeholder="Categories (space separated)" style="width: 100%;">
+            <!-- Step 2: Add Subject -->
+            <div id="onboarding-step-2" class="onboarding-step-content" style="display: none;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📝</div>
+                    <h1 class="headline" style="margin-bottom: 12px;">Add your first subject</h1>
+                    <p style="color: var(--text-muted);">What are you studying right now?</p>
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label style="font-size: 14px; color: var(--text-muted); display: block; margin-bottom: 8px;">Subject name</label>
+                    <input type="text" class="input" id="onboardingSubjectName" placeholder="e.g., Calculus, Physics, History" style="width: 100%;">
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label style="font-size: 14px; color: var(--text-muted); display: block; margin-bottom: 8px;">Add materials (optional)</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn" onclick="onboardingAddMaterial('pdf')" style="flex: 1; min-width: 80px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                            <span style="font-size: 20px;">📄</span>
+                            <span style="font-size: 12px;">PDF</span>
+                        </button>
+                        <button class="btn" onclick="onboardingAddMaterial('youtube')" style="flex: 1; min-width: 80px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                            <span style="font-size: 20px;">🎬</span>
+                            <span style="font-size: 12px;">YouTube</span>
+                        </button>
+                        <button class="btn" onclick="onboardingAddMaterial('text')" style="flex: 1; min-width: 80px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                            <span style="font-size: 20px;">📋</span>
+                            <span style="font-size: 12px;">Text</span>
+                        </button>
+                    </div>
+                    <div id="onboardingMaterialsList" style="margin-top: 12px; display: none;"></div>
+                </div>
             </div>
             
-            <button class="btn btn-primary btn-large" onclick="saveSubject()" style="width: 100%;">
-                Start Studying
-            </button>
+            <!-- Step 3: Set Profile -->
+            <div id="onboarding-step-3" class="onboarding-step-content" style="display: none;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">👤</div>
+                    <h1 class="headline" style="margin-bottom: 12px;">Set up your profile</h1>
+                    <p style="color: var(--text-muted);">Customize how you appear on the leaderboard</p>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 24px;">
+                    <div id="onboardingProfilePic" style="width: 80px; height: 80px; border-radius: 50%; background: var(--surface-2); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px dashed var(--border); overflow: hidden;" onclick="document.getElementById('onboardingPicInput').click()">
+                        <span id="onboardingPicPlaceholder" style="font-size: 32px;">📷</span>
+                    </div>
+                    <input type="file" id="onboardingPicInput" style="display: none;" accept="image/*" onchange="handleOnboardingPicUpload(this)">
+                    <span style="font-size: 12px; color: var(--text-muted);">Click to upload photo</span>
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label style="font-size: 14px; color: var(--text-muted); display: block; margin-bottom: 8px;">Username *</label>
+                    <input type="text" class="input" id="onboardingUsername" placeholder="Choose a username" style="width: 100%;">
+                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Letters, numbers, underscores only. At least 3 characters.</p>
+                </div>
+            </div>
+            
+            <!-- Step 4: Complete -->
+            <div id="onboarding-step-4" class="onboarding-step-content" style="display: none;">
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+                    <h1 class="headline" style="margin-bottom: 12px;">You're all set!</h1>
+                    <p style="color: var(--text-muted); line-height: 1.6;">Your study space is ready. Start adding subjects, track your progress, and level up your learning.</p>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--surface-2); border-radius: 12px;">
+                        <span style="font-size: 24px;">✅</span>
+                        <div style="font-size: 14px;">Profile created</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--surface-2); border-radius: 12px;">
+                        <span style="font-size: 24px;">✅</span>
+                        <div style="font-size: 14px;">Subject added</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--surface-2); border-radius: 12px;">
+                        <span style="font-size: 24px;">✅</span>
+                        <div style="font-size: 14px;">Ready to study</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation Buttons -->
+            <div style="display: flex; gap: 12px; margin-top: 32px;">
+                <button id="onboardingBackBtn" onclick="onboardingPrevStep()" style="flex: 1; padding: 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer; display: none;">Back</button>
+                <button id="onboardingNextBtn" onclick="onboardingNextStep()" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: var(--accent); color: var(--bg); font-size: 15px; font-weight: 600; cursor: pointer;">Next</button>
+            </div>
         </div>
     </div>
 
