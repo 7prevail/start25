@@ -5715,6 +5715,15 @@ Return ONLY the JSON array.`;
         // Route based on URL
         const initialPage = getPageFromUrl();
         showPage(initialPage);
+        
+        // Admin command to start onboarding
+        window.startOnboarding = function() {
+            onboardingCurrentStep = 1;
+            onboardingMaterials = [];
+            onboardingProfilePicData = null;
+            updateOnboardingUI();
+            showPage('onboarding');
+        };
     </script>
 </body>
 </html>
