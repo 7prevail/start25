@@ -1333,7 +1333,7 @@
             </div>
             
             <h3 style="margin-top: 32px; margin-bottom: 16px; font-size: 14px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Profile</h3>
-            <div class="settings-list">
+            <div class="settings-list" id="profileSettings">
                 <div class="setting-item" onclick="changeProfilePicture()">
                     <div class="setting-left">
                         <div class="setting-icon" id="settingsProfilePic" style="background-size: cover; background-position: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
@@ -1354,6 +1354,9 @@
                     </div>
                     <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
                 </div>
+            </div>
+            <div id="profileSignInPrompt" style="display: none; padding: 20px; text-align: center; color: var(--text-muted);">
+                <p>Sign in with Google to customize your profile and appear on the leaderboard.</p>
             </div>
             
             <h3 style="margin-top: 32px; margin-bottom: 16px; font-size: 14px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Data & Privacy</h3>
@@ -5579,6 +5582,8 @@ Return ONLY the JSON array.`;
             const signOutBtn = document.getElementById('signOutBtn');
             const settingsSignInItem = document.getElementById('settingsSignInItem');
             const settingsSignOutItem = document.getElementById('settingsSignOutItem');
+            const profileSettings = document.getElementById('profileSettings');
+            const profileSignInPrompt = document.getElementById('profileSignInPrompt');
             
             const currentUser = window.googleUser;
 
@@ -5587,6 +5592,8 @@ Return ONLY the JSON array.`;
                 if (signOutBtn) signOutBtn.style.display = 'block';
                 if (settingsSignInItem) settingsSignInItem.style.display = 'none';
                 if (settingsSignOutItem) settingsSignOutItem.style.display = 'flex';
+                if (profileSettings) profileSettings.style.display = 'block';
+                if (profileSignInPrompt) profileSignInPrompt.style.display = 'none';
                 if (userAvatar) {
                     userAvatar.textContent = '';
                     userAvatar.style.backgroundImage = `url(${currentUser.picture})`;
@@ -5600,6 +5607,8 @@ Return ONLY the JSON array.`;
                 if (signOutBtn) signOutBtn.style.display = 'none';
                 if (settingsSignInItem) settingsSignInItem.style.display = 'flex';
                 if (settingsSignOutItem) settingsSignOutItem.style.display = 'none';
+                if (profileSettings) profileSettings.style.display = 'none';
+                if (profileSignInPrompt) profileSignInPrompt.style.display = 'block';
                 if (userAvatar) {
                     userAvatar.textContent = 'U';
                     userAvatar.style.backgroundImage = '';
