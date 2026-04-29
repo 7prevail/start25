@@ -82,10 +82,11 @@
                 // Render the official Google button (ad-blocker resistant)
                 const container = document.getElementById('g_id_signin_container');
                 if (container) {
+                    const isDark = document.body.getAttribute('data-theme') === 'dark';
                     google.accounts.id.renderButton(container, {
                         type: 'standard',
                         shape: 'pill',
-                        theme: 'outline',
+                        theme: isDark ? 'filled_black' : 'outline',
                         text: 'signin_with',
                         size: 'medium',
                         logo_alignment: 'left'
@@ -693,12 +694,14 @@
         #googleSignInBtn * {
             font-size: 14px !important;
             color: var(--text) !important;
+            fill: var(--text) !important;
         }
         
         [data-theme="dark"] #googleSignInBtn > div > div > span,
         [data-theme="dark"] #googleSignInBtn span,
         [data-theme="dark"] #googleSignInBtn * {
             color: #ffffff !important;
+            fill: #ffffff !important;
         }
     </style>
     <!-- KaTeX for Math Rendering -->
@@ -4438,6 +4441,22 @@ Return ONLY the JSON array.`;
             document.body.setAttribute('data-theme', newTheme);
             localStorage.setItem('start25_theme', newTheme);
             setThemeIcons(newTheme);
+            
+            // Re-render Google button with correct theme
+            if (google && google.accounts && google.accounts.id) {
+                const container = document.getElementById('g_id_signin_container');
+                if (container) {
+                    container.innerHTML = '';
+                    google.accounts.id.renderButton(container, {
+                        type: 'standard',
+                        shape: 'pill',
+                        theme: newTheme === 'dark' ? 'filled_black' : 'outline',
+                        text: 'signin_with',
+                        size: 'medium',
+                        logo_alignment: 'left'
+                    });
+                }
+            }
         }
 
         function loadTheme() {
