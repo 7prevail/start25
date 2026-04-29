@@ -762,9 +762,6 @@
     <div class="modal-overlay" id="addSubjectModal">
         <div class="modal" style="max-width: 480px; max-height: 90vh; overflow-y: auto;">
             <h2 style="margin-bottom: 20px;">Add Subject</h2>
-            <div style="margin-bottom: 20px;">
-                <input type="text" class="input" id="modalSubjectName" placeholder="Subject name" style="width: 100%;">
-            </div>
             
             <div style="margin-bottom: 20px;">
                 <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Category</div>
@@ -1057,7 +1054,12 @@
             <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
                 <div style="width: 56px; height: 56px; background: var(--surface-2); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px;">📚</div>
                 <div style="flex: 1;">
-                    <h1 class="page-title" id="subjectTitle" style="margin: 0;">Subject</h1>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <h1 class="page-title" id="subjectTitle" style="margin: 0;">Subject</h1>
+                        <button onclick="renameSubject()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="Rename subject">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                    </div>
                     <div style="font-size: 14px; color: var(--text-muted);" id="subjectMaterialsCount">0 materials</div>
                     <div style="margin-top: 8px;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
@@ -1820,11 +1822,10 @@
                     ? subject.materials.map(m => (m.content || m.url || m.name).substring(0, 1000)).join('\n\n')
                     : 'No materials available';
                 
-                const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                const r = await fetch('/api/groq', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer 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'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         model: 'llama-3.1-8b-instant',
@@ -1890,11 +1891,10 @@
                     ? subject.materials.map(m => (m.content || m.url || m.name).substring(0, 1000)).join('\n\n')
                     : 'No materials available';
                 
-                const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                const r = await fetch('/api/groq', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer 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'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         model: 'llama-3.1-8b-instant',
@@ -2007,11 +2007,10 @@
                     ? subject.materials.map(m => (m.content || m.url || m.name).substring(0, 1000)).join('\n\n')
                     : 'No materials available';
                 
-                const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                const r = await fetch('/api/groq', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer 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'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         model: 'llama-3.1-8b-instant',
@@ -2100,11 +2099,10 @@
             try {
                 const materialsText = subject.materials.map(m => m.content || m.url || m.name).join('\n\n');
                 
-                const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                const r = await fetch('/api/groq', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer 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'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         model: 'llama-3.1-8b-instant',
@@ -2219,7 +2217,6 @@
         function openAddSubjectModal() {
             document.getElementById('addSubjectModal').classList.add('active');
             // Reset form
-            document.getElementById('modalSubjectName').value = '';
             document.getElementById('modalSubjectCategory').value = '';
             document.getElementById('modalSubjectNewCategory').value = '';
             document.getElementById('modalSubjectNewCategory').style.display = 'none';
@@ -2337,21 +2334,6 @@
         }
 
         async function saveSubjectFromModal() {
-            const name = sanitizeInput(document.getElementById('modalSubjectName').value, 100);
-            if (!name) {
-                showAlert('Subject name required', 'Please enter a subject name');
-                return;
-            }
-            
-            const existing = subjects.find(s => s.name.toLowerCase() === name.toLowerCase());
-            if (existing) {
-                showAlert('Subject exists', 'A subject with this name already exists');
-                return;
-            }
-            
-            const youtubeLink = sanitizeInput(document.getElementById('modalYoutubeLink').value, 500);
-            const pastedText = sanitizeInput(document.getElementById('modalPastedText').value, 50000);
-            
             // Get category from dropdown or new category input
             const categorySelect = document.getElementById('modalSubjectCategory');
             const newCategoryInput = document.getElementById('modalSubjectNewCategory');
@@ -2361,7 +2343,21 @@
             } else {
                 category = sanitizeInput(categorySelect.value, 50);
             }
-            const tags = category ? [category] : [];
+            
+            if (!category) {
+                showAlert('Category required', 'Please select or create a category');
+                return;
+            }
+            
+            // Auto-generate subject name from category (e.g., "Math" -> "Math 1", "Math 2")
+            const existingInCategory = subjects.filter(s => s.tags.includes(category));
+            const nextNumber = existingInCategory.length + 1;
+            const name = `${category} ${nextNumber}`;
+            
+            const youtubeLink = sanitizeInput(document.getElementById('modalYoutubeLink').value, 500);
+            const pastedText = sanitizeInput(document.getElementById('modalPastedText').value, 50000);
+            
+            const tags = [category];
             
             const subject = {
                 name: name,
@@ -2846,6 +2842,56 @@
             document.getElementById('subjectProgressText').textContent = level >= 10 ? 'Mastered!' : `${progress}% to next level`;
             
             // Add gold border for mastered subjects
+        }
+
+        function renameSubject() {
+            const subject = subjects.find(s => s.name === currentSubject);
+            if (!subject) return;
+            
+            showPrompt('Rename Subject', 'Enter new name:', subject.name, (newName) => {
+                const cleanName = sanitizeInput(newName, 100);
+                if (!cleanName) return;
+                
+                // Check if name already exists (excluding current subject)
+                const existing = subjects.find(s => s.name.toLowerCase() === cleanName.toLowerCase() && s.name !== currentSubject);
+                if (existing) {
+                    showAlert('Name exists', 'A subject with this name already exists');
+                    return;
+                }
+                
+                // Update subject name
+                subject.name = cleanName;
+                saveSubjects();
+                
+                // Update UI
+                document.getElementById('subjectTitle').textContent = cleanName;
+                renderSubjects();
+                
+                showAlert('Renamed', 'Subject renamed successfully');
+            });
+        }
+
+        function openSubject(name) {
+            const subject = subjects.find(s => s.name === name);
+            if (!subject) return;
+            
+            currentSubject = name;
+            
+            // Update subject page content
+            document.getElementById('subjectTitle').textContent = subject.name;
+            document.getElementById('subjectMaterialsCount').textContent = (subject.materials?.length || 0) + ' materials';
+            
+            // Update level and progress
+            const level = subject.level || 1;
+            const xp = subject.xp || 0;
+            const progress = subject.progress || 0;
+            
+            document.getElementById('subjectLevel').textContent = `Level ${level}`;
+            document.getElementById('subjectXP').textContent = `${xp} XP`;
+            document.getElementById('subjectProgressBar').style.width = progress + '%';
+            document.getElementById('subjectProgressText').textContent = level >= 10 ? 'Mastered!' : `${progress}% to next level`;
+            
+            // Add gold border for mastered subjects
             const progressBar = document.getElementById('subjectProgressBar');
             if (level >= 10) {
                 progressBar.style.background = '#ffd700';
@@ -3158,11 +3204,10 @@ Return ONLY the JSON array, no other text.`;
 
             try {
                 // Use real AI API
-                const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                const r = await fetch('/api/groq', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer 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'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         model: 'llama-3.1-8b-instant',
@@ -3772,11 +3817,10 @@ Return ONLY the JSON array, no other text.`;
             const typingId = showTypingIndicator();
             
             try {
-                const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                const r = await fetch('/api/groq', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer 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'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         model: 'llama-3.1-8b-instant',
@@ -4063,11 +4107,10 @@ Return as JSON array:
 Return ONLY the JSON array.`;
 
             try {
-                const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                const r = await fetch('/api/groq', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer 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'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         model: 'llama-3.1-8b-instant',
@@ -4905,7 +4948,6 @@ Return ONLY the JSON array.`;
         }
 
         // Admin Console Commands - type grantAdmin('password') in console
-        const ADMIN_PASSWORD = 'start25admin';
         let isAdmin = false;
         
         // Get current user info
@@ -4930,19 +4972,31 @@ Return ONLY the JSON array.`;
             return null;
         }
         
-        function grantAdmin(password) {
-            if (password === ADMIN_PASSWORD) {
-                isAdmin = true;
-                console.log('✅ Admin access granted!');
-                console.log('Available commands:');
-                console.log('  addXP(amount) - Add XP');
-                console.log('  setXP(amount) - Set total XP');
-                console.log('  resetXP() - Reset to 0');
-                console.log('  triggerConfetti() - Trigger confetti anytime');
-                console.log('  levelUp() - Instantly level up');
-                return true;
-            } else {
-                console.log('❌ Wrong password!');
+        async function grantAdmin(password) {
+            try {
+                const res = await fetch('/api/admin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    isAdmin = true;
+                    console.log('✅ Admin access granted!');
+                    console.log('Available commands:');
+                    console.log('  addXP(amount) - Add XP');
+                    console.log('  setXP(amount) - Set total XP');
+                    console.log('  resetXP() - Reset to 0');
+                    console.log('  triggerConfetti() - Trigger confetti anytime');
+                    console.log('  levelUp() - Instantly level up');
+                    return true;
+                } else {
+                    console.log('❌ Wrong password!');
+                    return false;
+                }
+            } catch (e) {
+                console.log('❌ Error checking admin access:', e);
                 return false;
             }
         }
