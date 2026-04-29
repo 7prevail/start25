@@ -2581,23 +2581,23 @@
                 }
             });
             
-            // Categories section
-            const categoriesSection = document.createElement('div');
-            categoriesSection.style.cssText = 'display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0;';
+            // Categories section (removed - redundant)
+            // const categoriesSection = document.createElement('div');
+            // categoriesSection.style.cssText = 'display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0;';
             
-            if (subject.tags && subject.tags.length > 0) {
-                subject.tags.forEach((tag) => {
-                    const pill = document.createElement('span');
-                    pill.className = 'category-pill';
-                    pill.style.cssText = 'font-size: 10px; padding: 2px 8px; background: var(--surface-2); border-radius: 12px; color: var(--text-muted); cursor: pointer;';
-                    pill.textContent = tag;
-                    pill.onclick = (e) => {
-                        e.stopPropagation();
-                        renderSubjects(tag);
-                    };
-                    categoriesSection.appendChild(pill);
-                });
-            }
+            // if (subject.tags && subject.tags.length > 0) {
+            //     subject.tags.forEach((tag) => {
+            //         const pill = document.createElement('span');
+            //         pill.className = 'category-pill';
+            //         pill.style.cssText = 'font-size: 10px; padding: 2px 8px; background: var(--surface-2); border-radius: 12px; color: var(--text-muted); cursor: pointer;';
+            //         pill.textContent = tag;
+            //         pill.onclick = (e) => {
+            //             e.stopPropagation();
+            //             renderSubjects(tag);
+            //         };
+            //         categoriesSection.appendChild(pill);
+            //     });
+            // }
             
             // Materials section (compact)
             const materialsSection = document.createElement('div');
