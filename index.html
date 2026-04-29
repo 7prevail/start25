@@ -3406,6 +3406,172 @@ Return ONLY the JSON array, no other text.`;
         }
 
         // Onboarding
+        let onboardingCurrentStep = 1;
+        let onboardingMaterials = [];
+        let onboardingProfilePicData = null;
+        
+        async function onboardingNextStep() {
+            if (onboardingCurrentStep === 2) {
+                // Validate subject name
+                const subjectName = document.getElementById('onboardingSubjectName').value.trim();
+                if (!subjectName) {
+                    showAlert('Required', 'Please enter a subject name');
+                    return;
+                }
+            }
+            
+            if (onboardingCurrentStep === 3) {
+                // Validate username
+                const username = document.getElementById('onboardingUsername').value.trim();
+                const cleanUsername = sanitizeInput(username, 30).toLowerCase().replace(/[^a-z0-9_]/g, '');
+                
+                if (cleanUsername.length < 3) {
+                    showAlert('Invalid', 'Username must be at least 3 characters');
+                    return;
+                }
+                
+                // Check if username is taken
+                const isTaken = await checkUsernameTaken(cleanUsername);
+                if (isTaken) {
+                    showAlert('Taken', 'That username is already taken. Try another one.');
+                    return;
+                }
+                
+                // Save username
+                localStorage.setItem('start25_username', cleanUsername);
+                
+                // Save profile pic if uploaded
+                if (onboardingProfilePicData) {
+                    localStorage.setItem('start25_profilePic', onboardingProfilePicData);
+                }
+                
+                // Save subject
+                const subjectName = document.getElementById('onboardingSubjectName').value.trim();
+                if (subjectName) {
+                    const newSubject = {
+                        name: subjectName,
+                        materials: onboardingMaterials,
+                        level: 1,
+                        xp: 0,
+                        createdAt: new Date().toISOString()
+                    };
+                    subjects.push(newSubject);
+                    saveSubjects();
+                }
+                
+                // Update leaderboard if logged in
+                updateLeaderboard();
+            }
+            
+            if (onboardingCurrentStep < 4) {
+                onboardingCurrentStep++;
+                updateOnboardingUI();
+            } else {
+                // Complete onboarding
+                localStorage.setItem('start25_onboarding_complete', 'true');
+                showPage('home');
+                showAlert('Welcome!', 'Your study space is ready!');
+            }
+        }
+        
+        function onboardingPrevStep() {
+            if (onboardingCurrentStep > 1) {
+                onboardingCurrentStep--;
+                updateOnboardingUI();
+            }
+        }
+        
+        function updateOnboardingUI() {
+            // Update progress indicators
+            document.querySelectorAll('.onboarding-step').forEach(el => {
+                const step = parseInt(el.dataset.step);
+                el.style.background = step <= onboardingCurrentStep ? 'var(--accent)' : 'var(--border)';
+            });
+            
+            // Show/hide step content
+            document.querySelectorAll('.onboarding-step-content').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.getElementById(`onboarding-step-${onboardingCurrentStep}`).style.display = 'block';
+            
+            // Update buttons
+            const backBtn = document.getElementById('onboardingBackBtn');
+            const nextBtn = document.getElementById('onboardingNextBtn');
+            
+            backBtn.style.display = onboardingCurrentStep === 1 ? 'none' : 'block';
+            nextBtn.textContent = onboardingCurrentStep === 4 ? 'Get Started' : 'Next';
+        }
+        
+        function onboardingAddMaterial(type) {
+            if (type === 'pdf') {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.pdf,.doc,.docx,.txt';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        onboardingMaterials.push({ type: 'pdf', name: file.name });
+                        updateOnboardingMaterialsList();
+                    }
+                };
+                input.click();
+            } else if (type === 'youtube') {
+                const url = prompt('Enter YouTube URL:');
+                if (url && url.startsWith('http')) {
+                    onboardingMaterials.push({ type: 'youtube', url: url });
+                    updateOnboardingMaterialsList();
+                }
+            } else if (type === 'text') {
+                const text = prompt('Enter your notes:');
+                if (text) {
+                    onboardingMaterials.push({ type: 'text', content: text.substring(0, 100) + (text.length > 100 ? '...' : '') });
+                    updateOnboardingMaterialsList();
+                }
+            }
+        }
+        
+        function updateOnboardingMaterialsList() {
+            const list = document.getElementById('onboardingMaterialsList');
+            if (onboardingMaterials.length === 0) {
+                list.style.display = 'none';
+                return;
+            }
+            
+            list.style.display = 'block';
+            list.innerHTML = onboardingMaterials.map((m, i) => `
+                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface-2); border-radius: 8px; margin-bottom: 8px;">
+                    <span style="font-size: 16px;">${m.type === 'pdf' ? '📄' : m.type === 'youtube' ? '🎬' : '📋'}</span>
+                    <span style="font-size: 13px; flex: 1;">${m.name || m.url || 'Text notes'}</span>
+                    <button onclick="removeOnboardingMaterial(${i})" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px;">×</button>
+                </div>
+            `).join('');
+        }
+        
+        function removeOnboardingMaterial(index) {
+            onboardingMaterials.splice(index, 1);
+            updateOnboardingMaterialsList();
+        }
+        
+        function handleOnboardingPicUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            if (file.size > 500 * 1024) {
+                showAlert('Too Large', 'Profile picture must be under 500KB');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                onboardingProfilePicData = e.target.result;
+                const picEl = document.getElementById('onboardingProfilePic');
+                const placeholder = document.getElementById('onboardingPicPlaceholder');
+                picEl.style.backgroundImage = `url(${onboardingProfilePicData})`;
+                if (placeholder) placeholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+        
         function showMaterialInput(type) {
             document.getElementById('materialOptions').style.display = 'none';
             document.getElementById('materialInputArea').style.display = 'block';
