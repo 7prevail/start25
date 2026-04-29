@@ -3500,8 +3500,8 @@ Return ONLY the JSON array, no other text.`;
                 }
                 
                 // Check if username is taken
-                const isTaken = await checkUsernameTaken(cleanUsername);
-                if (isTaken) {
+                const isUnique = await checkUsernameUnique(cleanUsername);
+                if (!isUnique) {
                     showAlert('Taken', 'That username is already taken. Try another one.');
                     return;
                 }
