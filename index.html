@@ -1108,7 +1108,7 @@
                     <button onclick="toggleDarkMode()" style="background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 8px 12px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; color: var(--text);">
                         <span id="themeIcon" style="display:flex;align-items:center;justify-content:center;"></span>
                     </button>
-                    <button class="profile-pill" onclick="showPage('profile')" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px;">
+                    <button class="profile-pill" onclick="alert('Profile clicked'); showPage('profile');" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px;">
                         <div style="position: relative;">
                             <div id="userAvatar" class="avatar" style="width: 32px; height: 32px; font-size: 14px;">U</div>
                             <div id="levelBadge" style="position: absolute; top: -8px; right: -8px; background: var(--accent); color: var(--bg); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 100px;">1</div>
@@ -1501,7 +1501,7 @@
         <div class="container">
             <div class="header">
                 <div class="brand">start25</div>
-                <button class="profile-pill" onclick="showPage('profile')">
+                <button class="profile-pill" onclick="showPage('settings')">
                     <div class="avatar">U</div>
                     <span>Settings</span>
                 </button>
@@ -1823,7 +1823,7 @@
             </span>
             AI
         </button>
-        <button class="nav-item" onclick="showPage('profile')" data-page="settings" style="margin-top: auto;">
+        <button class="nav-item" onclick="showPage('profile')" data-page="profile" style="margin-top: auto;">
             <span class="nav-icon">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </span>
@@ -2002,6 +2002,9 @@
             } else if (page === 'progress') {
                 updateProgressFull();
                 renderStreakCalendar();
+            } else if (page === 'profile') {
+                console.log('Showing profile page');
+                renderProfilePage();
             } else if (page === 'flashcards') {
                 renderFlashcards();
             } else if (page === 'quiz') {
@@ -2053,7 +2056,7 @@
             if (!path) return 'home';
             
             // Check if it's a valid page
-            const validPages = ['home', 'quiz', 'flashcards', 'leaderboard', 'settings',
+            const validPages = ['home', 'quiz', 'flashcards', 'leaderboard', 'settings', 'profile',
                 'studyguides', 'progress', 'chat', 'subject', 'studyguideview', 'onboarding', 'startstudy'];
             if (validPages.includes(path)) return path;
             
@@ -4074,9 +4077,223 @@ Return ONLY the JSON array, no other text.`;
                 const dateStr = d.toDateString();
                 const hasSession = sessions.some(s => new Date(s.date).toDateString() === dateStr);
                 
-                html += `<div style="width: 32px; height: 32px; border-radius: 8px; background: ${hasSession ? 'var(--accent)' : 'var(--surface-2)'}; border: 1px solid ${hasSession ? 'var(--accent)' : 'var(--border)'}; display: flex; align-items: center; justify-content: center; font-size: 11px; color: ${hasSession ? 'var(--bg)' : 'var(--text-muted)'};">${d.getDate()}</div>`;
+                html += `<div style="width: 32px; height: 32px; border-radius: 8px; background: ${hasSession ? 'var(--accent)' : 'var(--surface-2)'}; border: 1px solid ${hasSession ? 'var(--accent)' : 'var(--border)'}; display: flex; align-items: center; justify-content: center; font-size: 11px; color: ${hasSession ? 'var(--bg)' : 'var(--text-muted)'}">${d.getDate()}</div>`;
             }
             container.innerHTML = html;
+        }
+
+        // Profile Page Rendering
+        function renderProfilePage() {
+            // Get Google user data if signed in
+            let googleUserData = null;
+            if (window.googleUser) {
+                googleUserData = window.googleUser;
+            } else {
+                const savedUser = localStorage.getItem('googleUser');
+                if (savedUser) {
+                    try {
+                        googleUserData = JSON.parse(savedUser);
+                    } catch (e) {
+                        console.error('Error parsing googleUser:', e);
+                    }
+                }
+            }
+            
+            // User info - prioritize Google data, fall back to localStorage
+            const username = (googleUserData && googleUserData.name) || localStorage.getItem('start25_username') || 'User';
+            const profilePic = (googleUserData && googleUserData.picture) || localStorage.getItem('start25_profilePic');
+            const userEmail = (googleUserData && googleUserData.email) || '';
+            const level = JSON.parse(localStorage.getItem('start25_level') || '{"level": 1, "xp": 0, "maxXp": 100}');
+            
+            // Update user header
+            const avatarEl = document.getElementById('profilePageAvatar');
+            const badgeEl = document.getElementById('profilePageLevelBadge');
+            const usernameEl = document.getElementById('profilePageUsername');
+            const levelEl = document.getElementById('profilePageLevel');
+            const xpBarEl = document.getElementById('profilePageXpBar');
+            const xpEl = document.getElementById('profilePageXp');
+            
+            console.log('Profile render - googleUserData:', googleUserData);
+            console.log('Profile render - profilePic:', profilePic);
+            console.log('Profile render - username:', username);
+            
+            if (avatarEl) {
+                if (profilePic) {
+                    avatarEl.style.background = `var(--accent)`;
+                    avatarEl.style.backgroundImage = `url(${profilePic})`;
+                    avatarEl.style.backgroundSize = 'cover';
+                    avatarEl.style.backgroundPosition = 'center';
+                    avatarEl.textContent = '';
+                } else {
+                    avatarEl.style.background = 'var(--accent)';
+                    avatarEl.style.backgroundImage = '';
+                    avatarEl.textContent = (username[0] || 'U').toUpperCase();
+                }
+            }
+            if (badgeEl) badgeEl.textContent = level.level;
+            if (usernameEl) {
+                usernameEl.textContent = username;
+                // Add/update email subtitle if Google signed in
+                let emailEl = document.getElementById('profileEmail');
+                if (userEmail) {
+                    if (!emailEl) {
+                        emailEl = document.createElement('p');
+                        emailEl.id = 'profileEmail';
+                        emailEl.style.cssText = 'font-size: 12px; color: var(--text-muted); margin-top: 2px;';
+                        usernameEl.parentNode.insertBefore(emailEl, usernameEl.nextSibling);
+                    }
+                    emailEl.textContent = userEmail;
+                } else if (emailEl) {
+                    emailEl.remove();
+                }
+            }
+            if (levelEl) levelEl.textContent = `Level ${level.level}`;
+            if (xpBarEl) xpBarEl.style.width = `${(level.xp / level.maxXp) * 100}%`;
+            if (xpEl) xpEl.textContent = `${level.xp} / ${level.maxXp} XP`;
+            
+            // Stats
+            const sessions = JSON.parse(localStorage.getItem('start25_sessions') || '[]');
+            const streak = JSON.parse(localStorage.getItem('start25_streak') || '{"count": 0}');
+            
+            // Calculate study time
+            const today = new Date().toDateString();
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            
+            let todayMinutes = 0;
+            let weekMinutes = 0;
+            
+            sessions.forEach(s => {
+                const sessionDate = new Date(s.date);
+                if (sessionDate.toDateString() === today) {
+                    todayMinutes += s.duration || 25;
+                }
+                if (sessionDate >= weekAgo) {
+                    weekMinutes += s.duration || 25;
+                }
+            });
+            
+            const todayEl = document.getElementById('statToday');
+            const weekEl = document.getElementById('statWeek');
+            const streakEl = document.getElementById('statStreak');
+            const sessionsEl = document.getElementById('statSessions');
+            
+            if (todayEl) todayEl.textContent = formatStudyTime(todayMinutes);
+            if (weekEl) weekEl.textContent = formatStudyTime(weekMinutes);
+            if (streakEl) streakEl.innerHTML = `${streak.count} <span style="filter: ${streak.count > 0 ? 'none' : 'grayscale(100%)'};">🔥</span>`;
+            if (sessionsEl) sessionsEl.textContent = sessions.length;
+            
+            // Streak calendar (14 days for profile page)
+            const calendarEl = document.getElementById('profileStreakCalendar');
+            if (calendarEl) {
+                let html = '';
+                for (let i = 0; i < 14; i++) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const dateStr = d.toDateString();
+                    const hasSession = sessions.some(s => new Date(s.date).toDateString() === dateStr);
+                    
+                    html += `<div style="width: 36px; height: 36px; border-radius: 8px; background: ${hasSession ? 'var(--accent)' : 'var(--surface-2)'}; border: 1px solid ${hasSession ? 'var(--accent)' : 'var(--border)'}; display: flex; align-items: center; justify-content: center; font-size: 12px; color: ${hasSession ? 'var(--bg)' : 'var(--text-muted)'}">${d.getDate()}</div>`;
+                }
+                calendarEl.innerHTML = html;
+            }
+            
+            // Active goals (subjects)
+            const goalsEl = document.getElementById('profileGoals');
+            if (goalsEl) {
+                if (subjects.length === 0) {
+                    goalsEl.innerHTML = `
+                        <div class="card" style="padding: 20px; text-align: center; color: var(--text-muted);">
+                            No active goals yet. Add subjects to start tracking!
+                        </div>
+                    `;
+                } else {
+                    goalsEl.innerHTML = subjects.slice(0, 3).map(s => `
+                        <div class="card" style="padding: 16px; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-weight: 600; font-size: 15px;">${s.name}</span>
+                                <span style="font-size: 13px; color: var(--text-muted);">${s.progress || 0}%</span>
+                            </div>
+                            <div style="width: 100%; height: 6px; background: var(--surface-2); border-radius: 100px; overflow: hidden;">
+                                <div style="height: 100%; background: var(--accent); width: ${s.progress || 0}%; border-radius: 100px;"></div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+            
+            // Recent completed tasks
+            const completedEl = document.getElementById('profileRecentCompleted');
+            if (completedEl) {
+                const completed = [];
+                subjects.forEach(s => {
+                    (s.materials || []).forEach(m => {
+                        if (m.completed) {
+                            completed.push({
+                                name: m.name || m.type,
+                                subject: s.name,
+                                date: m.completedDate || s.lastStudied || new Date().toISOString()
+                            });
+                        }
+                    });
+                });
+                completed.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                if (completed.length === 0) {
+                    completedEl.innerHTML = `<div style="padding: 12px; color: var(--text-muted); font-size: 14px;">No completed tasks yet</div>`;
+                } else {
+                    completedEl.innerHTML = completed.slice(0, 5).map(c => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--surface-2); border-radius: 8px;">
+                            <div>
+                                <div style="font-weight: 500; font-size: 14px;">${c.name}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">${c.subject}</div>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-muted);">${formatTimeAgo(c.date)}</div>
+                        </div>
+                    `).join('');
+                }
+            }
+            
+            // Recent sessions
+            const sessionsEl2 = document.getElementById('profileRecentSessions');
+            if (sessionsEl2) {
+                const recentSessions = sessions.slice().reverse().slice(0, 5);
+                if (recentSessions.length === 0) {
+                    sessionsEl2.innerHTML = `<div style="padding: 12px; color: var(--text-muted); font-size: 14px;">No sessions yet</div>`;
+                } else {
+                    sessionsEl2.innerHTML = recentSessions.map(s => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--surface-2); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 16px;">🎯</span>
+                                <span style="font-size: 14px;">${s.duration || 25} min session</span>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-muted);">${formatTimeAgo(s.date)}</div>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        function formatStudyTime(minutes) {
+            if (minutes < 60) return `${minutes}m`;
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+        }
+
+        function formatTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
         }
 
         // Focus Mode
