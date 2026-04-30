@@ -2593,12 +2593,33 @@
             // Sort tags alphabetically
             const sortedTags = Object.keys(groupsToRender).sort((a, b) => a.localeCompare(b));
             
-            // First, render untagged subjects into the top row next to add button
+            // First, render untagged subjects into the top row next to add button (limit to 7)
             if (groupsToRender['OTHER'] && groupsToRender['OTHER'].length > 0 && untaggedContainer) {
-                groupsToRender['OTHER'].forEach((subject) => {
+                const maxVisible = 7;
+                const visibleUntagged = groupsToRender['OTHER'].slice(0, maxVisible);
+                const hiddenCount = groupsToRender['OTHER'].length - maxVisible;
+                
+                visibleUntagged.forEach((subject) => {
                     const card = createSubjectCard(subject, subjects.indexOf(subject));
                     untaggedContainer.appendChild(card);
                 });
+                
+                // Add "Show All" button if more than 7 untagged
+                if (hiddenCount > 0) {
+                    const showAllBtn = document.createElement('div');
+                    showAllBtn.style.cssText = 'min-width: 140px; height: 140px; border-radius: 12px; background: var(--surface-2); border: 2px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; flex-shrink: 0;';
+                    showAllBtn.innerHTML = '<span style="font-size: 24px; color: var(--text);">+' + hiddenCount + '</span><span style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">show all</span>';
+                    showAllBtn.onmouseover = () => showAllBtn.style.borderColor = 'var(--accent)';
+                    showAllBtn.onmouseout = () => showAllBtn.style.borderColor = 'var(--border)';
+                    showAllBtn.onclick = () => {
+                        showAllBtn.remove();
+                        groupsToRender['OTHER'].slice(maxVisible).forEach((subject) => {
+                            const card = createSubjectCard(subject, subjects.indexOf(subject));
+                            untaggedContainer.appendChild(card);
+                        });
+                    };
+                    untaggedContainer.appendChild(showAllBtn);
+                }
             }
             
             // Render each tagged group as a vertical section with horizontal scrolling cards
@@ -2638,11 +2659,33 @@
                     cardsRow.style.display = 'none';
                 }
                 
-                // Render subjects in this group
-                tagSubjects.forEach((subject) => {
+                // Limit to 7 subjects per row initially
+                const maxVisible = 7;
+                const visibleSubjects = tagSubjects.slice(0, maxVisible);
+                const hiddenCount = tagSubjects.length - maxVisible;
+                
+                visibleSubjects.forEach((subject) => {
                     const card = createSubjectCard(subject, subjects.indexOf(subject));
                     cardsRow.appendChild(card);
                 });
+                
+                // Add "Show All" button if there are more than 7
+                if (hiddenCount > 0) {
+                    const showAllBtn = document.createElement('div');
+                    showAllBtn.style.cssText = 'min-width: 140px; height: 140px; border-radius: 12px; background: var(--surface-2); border: 2px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; flex-shrink: 0;';
+                    showAllBtn.innerHTML = '<span style="font-size: 24px; color: var(--text);">+' + hiddenCount + '</span><span style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">show all</span>';
+                    showAllBtn.onmouseover = () => showAllBtn.style.borderColor = 'var(--accent)';
+                    showAllBtn.onmouseout = () => showAllBtn.style.borderColor = 'var(--border)';
+                    showAllBtn.onclick = () => {
+                        // Remove the button and add remaining subjects
+                        showAllBtn.remove();
+                        tagSubjects.slice(maxVisible).forEach((subject) => {
+                            const card = createSubjectCard(subject, subjects.indexOf(subject));
+                            cardsRow.appendChild(card);
+                        });
+                    };
+                    cardsRow.appendChild(showAllBtn);
+                }
                 
                 sectionWrapper.appendChild(cardsRow);
                 container.appendChild(sectionWrapper);
