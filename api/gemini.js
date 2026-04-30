@@ -7,6 +7,11 @@ export default async function handler(req, res) {
   try {
     const { messages } = req.body;
     
+    if (!messages || !Array.isArray(messages)) {
+      console.error('Invalid request body:', req.body);
+      return res.status(400).json({ error: 'Missing or invalid messages array' });
+    }
+    
     // Convert OpenAI-style messages to Gemini format
     // Combine all messages into a single prompt
     const fullPrompt = messages.map(m => {
@@ -15,6 +20,8 @@ export default async function handler(req, res) {
       if (m.role === 'assistant') return `Assistant: ${m.content}`;
       return m.content;
     }).join('\n\n');
+    
+    console.log('Gemini prompt length:', fullPrompt.length);
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -32,7 +39,11 @@ export default async function handler(req, res) {
     const data = await response.json();
     
     if (data.error) {
-      return res.status(400).json({ error: data.error.message });
+      console.error('Gemini API Error:', JSON.stringify(data.error));
+      return res.status(400).json({ 
+        error: data.error.message || 'Gemini API error',
+        details: data.error
+      });
     }
 
     const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
