@@ -1515,8 +1515,8 @@
                         <div id="profilePageLevelBadge" style="position: absolute; top: -4px; right: -4px; background: var(--accent); color: var(--bg); font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 100px;">1</div>
                     </div>
                     <div style="flex: 1;">
-                        <h1 id="profilePageUsername" style="font-size: 24px; margin-bottom: 4px;">User</h1>
-                        <p id="profilePageDisplay" style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">@ Level 1</p>
+                        <h1 id="profilePageDisplayName" style="font-size: 24px; margin-bottom: 4px;">DisplayName</h1>
+                        <p id="profilePageDisplay" style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">@username Level 1</p>
                         <div style="width: 200px; height: 8px; background: var(--surface-2); border-radius: 100px; overflow: hidden;">
                             <div id="profilePageXpBar" style="height: 100%; background: var(--success); width: 0%; transition: width 0.3s;"></div>
                         </div>
@@ -4131,9 +4131,11 @@ Return ONLY the JSON array, no other text.`;
                 }
             }
             if (badgeEl) badgeEl.textContent = level.level;
-            if (usernameEl) usernameEl.textContent = username;
+            const displayNameEl = document.getElementById('profilePageDisplayName');
+            const displayName = localStorage.getItem('start25_displayName') || username;
+            if (displayNameEl) displayNameEl.textContent = displayName;
             const displayEl = document.getElementById('profilePageDisplay');
-            if (displayEl) displayEl.textContent = `@ Level ${level.level}`;
+            if (displayEl) displayEl.textContent = `@${username} Level ${level.level}`;
             if (xpBarEl) xpBarEl.style.width = `${(level.xp / level.maxXp) * 100}%`;
             if (xpEl) xpEl.textContent = `${level.xp} / ${level.maxXp} XP`;
             
