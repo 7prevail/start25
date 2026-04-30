@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     console.log('Gemini prompt length:', fullPrompt.length);
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
           content: result
         }
       }],
-      model: 'gemini-2.5-flash'
+      model: 'gemini-2.5-flash-lite'
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch from Gemini API' });
