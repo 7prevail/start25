@@ -789,7 +789,12 @@
     <div class="modal-overlay" id="addSubjectModal">
         <div class="modal" style="max-width: 480px; max-height: 90vh; overflow-y: auto;">
             <h2 style="margin-bottom: 20px;">Add Subject</h2>
-            
+
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Subject Name *</div>
+                <input type="text" id="modalSubjectName" class="input" placeholder="e.g., Calculus, Biology, History" style="width: 100%;" required>
+            </div>
+
             <div style="margin-bottom: 20px;">
                 <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Category</div>
                 <select id="modalSubjectCategory" class="input" style="width: 100%; cursor: pointer;">
@@ -2350,6 +2355,7 @@
         function openAddSubjectModal() {
             document.getElementById('addSubjectModal').classList.add('active');
             // Reset form
+            document.getElementById('modalSubjectName').value = '';
             document.getElementById('modalSubjectCategory').value = '';
             document.getElementById('modalSubjectNewCategory').value = '';
             document.getElementById('modalSubjectNewCategory').style.display = 'none';
@@ -2467,6 +2473,13 @@
         }
 
         async function saveSubjectFromModal() {
+            // Get subject name
+            const subjectName = sanitizeInput(document.getElementById('modalSubjectName').value, 100);
+            if (!subjectName) {
+                showAlert('Subject name required', 'Please enter a subject name');
+                return;
+            }
+
             // Get category from dropdown or new category input
             const categorySelect = document.getElementById('modalSubjectCategory');
             const newCategoryInput = document.getElementById('modalSubjectNewCategory');
@@ -2476,16 +2489,13 @@
             } else {
                 category = sanitizeInput(categorySelect.value, 50);
             }
-            
+
             if (!category) {
                 showAlert('Category required', 'Please select or create a category');
                 return;
             }
-            
-            // Auto-generate subject name from category (e.g., "Math" -> "Math 1", "Math 2")
-            const existingInCategory = subjects.filter(s => s.tags.includes(category));
-            const nextNumber = existingInCategory.length + 1;
-            const name = `${category} ${nextNumber}`;
+
+            const name = subjectName;
             
             const youtubeLink = sanitizeInput(document.getElementById('modalYoutubeLink').value, 500);
             const pastedText = sanitizeInput(document.getElementById('modalPastedText').value, 50000);
