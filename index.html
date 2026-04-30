@@ -5760,22 +5760,6 @@ Return ONLY the JSON array.`;
             container.innerHTML = weak.map(w => '<div style="padding: 12px; background: var(--surface-2); border-radius: 8px; margin-bottom: 8px;"><strong>' + w.subject + '</strong>: ' + w.topic + '</div>').join('');
         }
 
-        function formatMarkdown(text) {
-            // Convert **text** to bold
-            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-            // Convert *text* to italic
-            text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
-            // Convert `code` to inline code
-            text = text.replace(/`(.+?)`/g, '<code style="background: var(--surface); padding: 2px 6px; border-radius: 4px; font-family: monospace;">$1</code>');
-            // Convert numbered lists (1. item)
-            text = text.replace(/\n?\d+\.\s+(.+?)(?=\n|$)/g, '<li>$1</li>');
-            // Wrap consecutive li elements in ol
-            text = text.replace(/(<li>.+<\/li>)+/g, '<ol style="margin: 8px 0; padding-left: 20px;">$&</ol>');
-            // Convert newlines to breaks
-            text = text.replace(/\n/g, '<br>');
-            return text;
-        }
-
         function generateAIResponse(question) {
             const lower = question.toLowerCase();
             
