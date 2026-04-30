@@ -1108,7 +1108,7 @@
                     <button onclick="toggleDarkMode()" style="background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 8px 12px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; color: var(--text);">
                         <span id="themeIcon" style="display:flex;align-items:center;justify-content:center;"></span>
                     </button>
-                    <button class="profile-pill" onclick="showPage('settings')" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px;">
+                    <button class="profile-pill" onclick="showPage('profile')" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px;">
                         <div style="position: relative;">
                             <div id="userAvatar" class="avatar" style="width: 32px; height: 32px; font-size: 14px;">U</div>
                             <div id="levelBadge" style="position: absolute; top: -8px; right: -8px; background: var(--accent); color: var(--bg); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 100px;">1</div>
@@ -1219,7 +1219,7 @@
         <div class="container">
             <div class="header">
                 <div class="brand">start25</div>
-                <button class="profile-pill" onclick="showPage('settings')">
+                <button class="profile-pill" onclick="showPage('profile')">
                     <div class="avatar">U</div>
                     <span>Profile</span>
                 </button>
@@ -1240,7 +1240,7 @@
         <div class="container">
             <div class="header">
                 <div class="brand">start25</div>
-                <button class="profile-pill" onclick="showPage('settings')">
+                <button class="profile-pill" onclick="showPage('profile')">
                     <div class="avatar">U</div>
                     <span>Profile</span>
                 </button>
@@ -1266,7 +1266,7 @@
         <div class="container">
             <div class="header">
                 <div class="brand">start25</div>
-                <button class="profile-pill" onclick="showPage('settings')">
+                <button class="profile-pill" onclick="showPage('profile')">
                     <div class="avatar">U</div>
                     <span>Profile</span>
                 </button>
@@ -1299,7 +1299,7 @@
         <div class="container">
             <div class="header">
                 <div class="brand">start25</div>
-                <button class="profile-pill" onclick="showPage('settings')">
+                <button class="profile-pill" onclick="showPage('profile')">
                     <div class="avatar">U</div>
                     <span>Profile</span>
                 </button>
@@ -1455,6 +1455,16 @@
                     </div>
                     <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
                 </div>
+                <div class="setting-item" onclick="showPage('podcast')">
+                    <div class="setting-left">
+                        <div class="setting-icon">🎙️</div>
+                        <div>
+                            <h4 style="font-size: 15px; margin-bottom: 4px;">AI Podcast</h4>
+                            <p style="font-size: 13px; color: var(--text-muted);">Generate podcast from your study materials</p>
+                        </div>
+                    </div>
+                    <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </div>
             </div>
             <div id="profileSignInPrompt" style="display: none; padding: 20px; text-align: center; color: var(--text-muted);">
                 <p>Sign in with Google to customize your profile and appear on the leaderboard.</p>
@@ -1486,12 +1496,198 @@
         </div>
     </div>
 
-    <!-- PAGE 7: Leaderboard -->
+    <!-- PAGE 6b: Profile Stats -->
+    <div class="page" id="page-profile">
+        <div class="container">
+            <div class="header">
+                <div class="brand">start25</div>
+                <button class="profile-pill" onclick="showPage('profile')">
+                    <div class="avatar">U</div>
+                    <span>Settings</span>
+                </button>
+            </div>
+            
+            <!-- User Header Section -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+                    <div style="position: relative;">
+                        <div id="profilePageAvatar" class="avatar" style="width: 80px; height: 80px; font-size: 32px;">U</div>
+                        <div id="profilePageLevelBadge" style="position: absolute; top: -4px; right: -4px; background: var(--accent); color: var(--bg); font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 100px;">1</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <h1 id="profilePageUsername" style="font-size: 24px; margin-bottom: 4px;">User</h1>
+                        <p id="profilePageLevel" style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Level 1</p>
+                        <div style="width: 200px; height: 8px; background: var(--surface-2); border-radius: 100px; overflow: hidden;">
+                            <div id="profilePageXpBar" style="height: 100%; background: var(--success); width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                        <p id="profilePageXp" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">0 XP</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study Stats Grid -->
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Study Stats</h2>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;">
+                <div class="card" style="padding: 16px; text-align: center;">
+                    <div id="statToday" style="font-size: 28px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">0m</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Today</div>
+                </div>
+                <div class="card" style="padding: 16px; text-align: center;">
+                    <div id="statWeek" style="font-size: 28px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">0m</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">This Week</div>
+                </div>
+                <div class="card" style="padding: 16px; text-align: center;">
+                    <div id="statStreak" style="font-size: 28px; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">0 🔥</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Streak</div>
+                </div>
+                <div class="card" style="padding: 16px; text-align: center;">
+                    <div id="statSessions" style="font-size: 28px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">0</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Sessions</div>
+                </div>
+            </div>
+
+            <!-- Streak Calendar -->
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Streak Calendar</h2>
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="profileStreakCalendar"></div>
+            </div>
+
+            <!-- Active Goals -->
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Active Goals</h2>
+            <div id="profileGoals" style="margin-bottom: 24px;">
+                <div class="card" style="padding: 20px; text-align: center; color: var(--text-muted);">
+                    No active goals yet. Add subjects to start tracking!
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Recent Activity</h2>
+            <div class="card" style="margin-bottom: 24px;">
+                <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-muted);">Last Completed</h3>
+                <div id="profileRecentCompleted" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="padding: 12px; color: var(--text-muted); font-size: 14px;">No completed tasks yet</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 24px;">
+                <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-muted);">Recent Sessions</h3>
+                <div id="profileRecentSessions" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="padding: 12px; color: var(--text-muted); font-size: 14px;">No sessions yet</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Quick Actions</h2>
+            <div class="settings-list" style="margin-bottom: 24px;">
+                <div class="setting-item" onclick="showPage('progress')">
+                    <div class="setting-left">
+                        <div class="setting-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+                        <div>
+                            <h4 style="font-size: 15px; margin-bottom: 4px;">Full Progress</h4>
+                            <p style="font-size: 13px; color: var(--text-muted);">View detailed progress page</p>
+                        </div>
+                    </div>
+                    <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </div>
+                <div class="setting-item" onclick="changeProfilePicture()">
+                    <div class="setting-left">
+                        <div class="setting-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+                        <div>
+                            <h4 style="font-size: 15px; margin-bottom: 4px;">Change Picture</h4>
+                            <p style="font-size: 13px; color: var(--text-muted);">Update your profile photo</p>
+                        </div>
+                    </div>
+                    <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </div>
+                <div class="setting-item" onclick="changeUsername()">
+                    <div class="setting-left">
+                        <div class="setting-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg></div>
+                        <div>
+                            <h4 style="font-size: 15px; margin-bottom: 4px;">Change Username</h4>
+                            <p style="font-size: 13px; color: var(--text-muted);">Update your display name</p>
+                        </div>
+                    </div>
+                    <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </div>
+                <div class="setting-item" onclick="signOut()">
+                    <div class="setting-left">
+                        <div class="setting-icon" style="background: #fee2e2; color: #dc2626;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+                        <div>
+                            <h4 style="font-size: 15px; margin-bottom: 4px; color: #dc2626;">Sign Out</h4>
+                            <p style="font-size: 13px; color: var(--text-muted);">Sign out of your account</p>
+                        </div>
+                    </div>
+                    <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 7: AI Podcast -->
+    <div class="page" id="page-podcast">
+        <div class="container">
+            <div class="header">
+                <div class="brand">start25</div>
+                <button class="profile-pill" onclick="showPage('profile')">
+                    <div class="avatar">U</div>
+                    <span>Profile</span>
+                </button>
+            </div>
+            <h1 class="page-title">🎙️ AI Podcast</h1>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Generate a conversational podcast from your study materials</p>
+            
+            <!-- Podcast Generator -->
+            <div class="card" style="margin-bottom: 24px;">
+                <h3 style="margin-bottom: 16px; font-size: 16px;">Generate Podcast</h3>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-muted);">Select Content</label>
+                    <select id="podcastSubject" class="input" style="width: 100%; margin-bottom: 16px;">
+                        <option value="all">All Subjects</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-muted);">Duration</label>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn btn-primary" onclick="generatePodcast('short')" style="flex: 1;">Short (2 min)</button>
+                        <button class="btn" onclick="generatePodcast('medium')" style="flex: 1;">Medium (5 min)</button>
+                    </div>
+                </div>
+                <button class="btn" onclick="generatePodcast('long')" style="width: 100%;">Long (10 min)</button>
+            </div>
+            
+            <!-- Podcast Player -->
+            <div id="podcastPlayer" class="card" style="display: none;">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                    <div style="width: 60px; height: 60px; background: var(--surface-2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🎧</div>
+                    <div>
+                        <h3 id="podcastTitle" style="font-size: 16px; margin-bottom: 4px;">Study Session Podcast</h3>
+                        <p id="podcastStatus" style="font-size: 13px; color: var(--text-muted);">Ready to play</p>
+                    </div>
+                </div>
+                
+                <!-- Audio Element -->
+                <audio id="podcastAudio" controls style="width: 100%; margin-bottom: 16px;"></audio>
+                
+                <!-- Transcript Toggle -->
+                <button class="btn" onclick="togglePodcastTranscript()" style="width: 100%; margin-bottom: 12px;">Show Transcript</button>
+                <div id="podcastTranscript" style="display: none; max-height: 300px; overflow-y: auto; padding: 16px; background: var(--surface-2); border-radius: 8px; font-size: 14px; line-height: 1.6;"></div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="podcastLoading" class="card" style="display: none; text-align: center; padding: 40px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">🎙️</div>
+                <p style="color: var(--text-muted);">Generating your podcast... This may take a minute.</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Two AI hosts are discussing your materials</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 8: Leaderboard -->
     <div class="page" id="page-leaderboard">
         <div class="container">
             <div class="header">
                 <div class="brand">start25</div>
-                <button class="profile-pill" onclick="showPage('settings')">
+                <button class="profile-pill" onclick="showPage('profile')">
                     <div class="avatar">U</div>
                     <span>Profile</span>
                 </button>
@@ -1514,7 +1710,7 @@
         <div class="container">
             <div class="header">
                 <div class="brand">start25</div>
-                <button class="profile-pill" onclick="showPage('settings')">
+                <button class="profile-pill" onclick="showPage('profile')">
                     <div class="avatar">U</div>
                     <span>Profile</span>
                 </button>
@@ -1539,7 +1735,7 @@
         <div class="container">
             <div class="header">
                 <div class="brand">start25</div>
-                <button class="profile-pill" onclick="showPage('settings')">
+                <button class="profile-pill" onclick="showPage('profile')">
                     <div class="avatar">U</div>
                     <span>Profile</span>
                 </button>
@@ -1627,7 +1823,7 @@
             </span>
             AI
         </button>
-        <button class="nav-item" onclick="showPage('settings')" data-page="settings" style="margin-top: auto;">
+        <button class="nav-item" onclick="showPage('profile')" data-page="settings" style="margin-top: auto;">
             <span class="nav-icon">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </span>
@@ -1816,6 +2012,8 @@
                 renderStudyGuides();
             } else if (page === 'startstudy') {
                 renderStartStudy();
+            } else if (page === 'podcast') {
+                populatePodcastSubjects();
             }
             
             // Update URL without reloading (clean URLs on host, hash on file://)
@@ -4138,6 +4336,160 @@ Return ONLY the JSON array, no other text.`;
             }
             
             currentFocusSession = null;
+        }
+
+        // AI Podcast
+        let podcastTranscriptText = '';
+
+        function populatePodcastSubjects() {
+            const select = document.getElementById('podcastSubject');
+            if (!select) return;
+            
+            // Keep "All Subjects" option
+            select.innerHTML = '<option value="all">All Subjects</option>';
+            
+            // Add categories
+            const categories = getAllCategories();
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                select.appendChild(option);
+            });
+        }
+
+        async function generatePodcast(duration) {
+            const subjectSelect = document.getElementById('podcastSubject');
+            const selectedSubject = subjectSelect ? subjectSelect.value : 'all';
+            
+            // Show loading
+            document.getElementById('podcastLoading').style.display = 'block';
+            document.getElementById('podcastPlayer').style.display = 'none';
+            
+            try {
+                // Gather content based on selection
+                let content = '';
+                if (selectedSubject === 'all') {
+                    content = subjects.map(s => `${s.name}: ${s.materials?.map(m => m.content || m.name).join(', ') || 'No materials'}`).join('\n\n');
+                } else {
+                    const filtered = subjects.filter(s => s.tags.includes(selectedSubject));
+                    content = filtered.map(s => `${s.name}: ${s.materials?.map(m => m.content || m.name).join(', ') || 'No materials'}`).join('\n\n');
+                }
+                
+                if (!content.trim()) {
+                    showAlert('No Content', 'Add some study materials first!');
+                    document.getElementById('podcastLoading').style.display = 'none';
+                    return;
+                }
+                
+                // Calculate target word count (avg 150 words/min)
+                const targetWords = duration === 'short' ? 300 : duration === 'medium' ? 750 : 1500;
+                
+                // Generate podcast script
+                const response = await fetch('/api/gemini', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [
+                            {
+                                role: 'system',
+                                content: `You are a podcast script generator. Create a conversational podcast between two hosts: Alex (enthusiastic, curious) and Jordan (knowledgeable, insightful). They discuss study materials in an engaging, natural conversation. Target length: ~${targetWords} words. Format as: ALEX: [line] JORDAN: [line] etc. Make it educational but conversational.`
+                            },
+                            {
+                                role: 'user',
+                                content: `Create a podcast discussing these study materials:\n\n${content.substring(0, 8000)}`
+                            }
+                        ]
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.error || !data.choices) {
+                    throw new Error(data.error || 'Failed to generate podcast');
+                }
+                
+                podcastTranscriptText = data.choices[0].message.content;
+                
+                // Display transcript
+                document.getElementById('podcastTranscript').innerHTML = formatPodcastTranscript(podcastTranscriptText);
+                
+                // For now, use browser's text-to-speech as fallback
+                // In production, you'd use Gemini TTS API
+                generateAudioFromTranscript(podcastTranscriptText);
+                
+                // Show player
+                document.getElementById('podcastLoading').style.display = 'none';
+                document.getElementById('podcastPlayer').style.display = 'block';
+                document.getElementById('podcastTitle').textContent = `Study Podcast - ${selectedSubject === 'all' ? 'All Subjects' : selectedSubject}`;
+                
+            } catch (e) {
+                console.error('Podcast generation error:', e);
+                document.getElementById('podcastLoading').style.display = 'none';
+                showAlert('Error', 'Failed to generate podcast. Try again.');
+            }
+        }
+
+        function formatPodcastTranscript(text) {
+            return text
+                .replace(/ALEX:/g, '<strong style="color: var(--accent);">ALEX:</strong>')
+                .replace(/JORDAN:/g, '<strong style="color: #6366f1;">JORDAN:</strong>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function generateAudioFromTranscript(text) {
+            // Use Web Speech API for now
+            const audio = document.getElementById('podcastAudio');
+            
+            // For now, create a data URI with speech synthesis info
+            // In production, you'd call Gemini TTS API here
+            const utterance = new SpeechSynthesisUtterance(text.replace(/ALEX:|JORDAN:/g, ''));
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            
+            // Store reference for play button
+            window.podcastUtterance = utterance;
+            
+            // Since we can't easily get audio file from Web Speech API,
+            // show message about text-to-speech
+            document.getElementById('podcastStatus').textContent = 'Text-to-speech ready (click to play transcript)';
+            
+            // Create a simple audio player that reads transcript
+            audio.style.display = 'none';
+            document.getElementById('podcastStatus').innerHTML = '<button class="btn btn-primary" onclick="playPodcast()" style="width: 100%;">▶ Play Podcast</button>';
+        }
+
+        function playPodcast() {
+            if (window.podcastUtterance && window.speechSynthesis) {
+                window.speechSynthesis.cancel(); // Stop any current speech
+                window.speechSynthesis.speak(window.podcastUtterance);
+                document.getElementById('podcastStatus').innerHTML = '<button class="btn" onclick="pausePodcast()" style="width: 100%;">⏸ Pause</button>';
+            }
+        }
+
+        function pausePodcast() {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.pause();
+                document.getElementById('podcastStatus').innerHTML = '<button class="btn btn-primary" onclick="resumePodcast()" style="width: 100%;">▶ Resume</button>';
+            }
+        }
+
+        function resumePodcast() {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.resume();
+                document.getElementById('podcastStatus').innerHTML = '<button class="btn" onclick="pausePodcast()" style="width: 100%;">⏸ Pause</button>';
+            }
+        }
+
+        function togglePodcastTranscript() {
+            const transcript = document.getElementById('podcastTranscript');
+            const btn = event.target;
+            if (transcript.style.display === 'none') {
+                transcript.style.display = 'block';
+                btn.textContent = 'Hide Transcript';
+            } else {
+                transcript.style.display = 'none';
+                btn.textContent = 'Show Transcript';
+            }
         }
 
         // AI Chat History
