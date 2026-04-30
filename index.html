@@ -1751,7 +1751,14 @@
 
         // Save subjects to localStorage
         function saveSubjects() {
-            localStorage.setItem('start25_subjects', JSON.stringify(subjects));
+            try {
+                localStorage.setItem('start25_subjects', JSON.stringify(subjects));
+            } catch (e) {
+                console.error('Failed to save subjects:', e);
+                if (e.name === 'QuotaExceededError') {
+                    showAlert('Storage Full', 'Your storage is full. Try removing some PDFs or large materials.');
+                }
+            }
         }
 
         // ── Security utilities ─────────────────────────────────────────────────
@@ -3984,7 +3991,12 @@ Return ONLY the JSON array, no other text.`;
         }
 
         function startFocusSession(subjectName, description) {
-            document.getElementById('focusTaskText').innerHTML = `Focus: <strong>${description || subjectName}</strong>`;
+            // Clear any existing timer first
+            clearInterval(timerInterval);
+            timerInterval = null;
+            isRunning = false;
+            
+            document.getElementById('focusTaskText').innerHTML = `Focus: <strong>${escapeHtml(description || subjectName)}</strong>`;
             
             // Render todo list
             renderFocusTodoList();
@@ -4030,9 +4042,12 @@ Return ONLY the JSON array, no other text.`;
         function toggleTimer() {
             if (isRunning) {
                 clearInterval(timerInterval);
+                timerInterval = null;
                 isRunning = false;
                 document.getElementById('timerBtn').textContent = 'Resume';
             } else {
+                // Clear any existing interval first (prevent duplicates)
+                if (timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(() => {
                     timeRemaining--;
                     updateTimerDisplay();
@@ -4061,6 +4076,7 @@ Return ONLY the JSON array, no other text.`;
 
         function exitFocus() {
             clearInterval(timerInterval);
+            timerInterval = null;
             isRunning = false;
             document.getElementById('focusOverlay').classList.remove('active');
             
@@ -4072,6 +4088,7 @@ Return ONLY the JSON array, no other text.`;
 
         function completeSession() {
             clearInterval(timerInterval);
+            timerInterval = null;
             isRunning = false;
             document.getElementById('focusOverlay').classList.remove('active');
             
@@ -4125,6 +4142,11 @@ Return ONLY the JSON array, no other text.`;
 
         // AI Chat History
         let chatHistory = [];
+
+        // Clear chat when leaving chat page
+        window.addEventListener('beforeunload', () => {
+            chatHistory = [];
+        });
 
         async function askAI() {
             const input = document.getElementById('chatInput');
