@@ -1,0 +1,10 @@
+# Ignore everything except start25 projects
+*
+!.gitignore
+!start25\ project/
+!start25-landing/
+
+# Still ignore these even inside start25 folders
+.DS_Store
+*.log
+node_modules/
