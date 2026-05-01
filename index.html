@@ -1543,7 +1543,7 @@
                     </div>
                     <div style="flex: 1;">
                         <h1 id="profilePageDisplayName" style="font-size: 24px; margin-bottom: 4px;">DisplayName</h1>
-                        <p id="profilePageTitle" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); padding: 4px 10px; border-radius: 999px; margin-bottom: 8px;">Rookie Scholar</p>
+                        <p id="profilePageTitle" onclick="showTitleSelector()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); padding: 4px 10px; border-radius: 999px; margin-bottom: 8px; cursor: pointer;" title="Click to change title">Rookie Scholar</p>
                         <p id="profilePageDisplay" style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">@username Level 1</p>
                         <div style="width: 200px; height: 8px; background: var(--surface-2); border-radius: 100px; overflow: hidden;">
                             <div id="profilePageXpBar" style="height: 100%; background: var(--success); width: 0%; transition: width 0.3s;"></div>
@@ -4236,7 +4236,8 @@ Return ONLY the JSON array, no other text.`;
             const userEmail = (googleUserData && googleUserData.email) || '';
             const level = safeParse('start25_level', {level: 1, xp: 0, maxXp: 100});
             const currentXP = getXP();
-            const currentTitle = getTitleForXP(currentXP);
+            const equippedTitle = localStorage.getItem('start25_equipped_title');
+            const currentTitle = equippedTitle || getTitleForXP(currentXP);
             
             // Update user header
             const avatarEl = document.getElementById('profilePageAvatar');
@@ -5902,6 +5903,19 @@ Return ONLY the JSON array.`;
         }
 
         // XP/Level System
+        const ALL_TITLES = [
+            { name: 'Rookie Scholar', xp: 0 },
+            { name: 'Rising Scholar', xp: 80 },
+            { name: 'Steady Student', xp: 200 },
+            { name: 'Focused Learner', xp: 500 },
+            { name: 'Advanced Scholar', xp: 1000 },
+            { name: 'Expert Student', xp: 1800 },
+            { name: 'Master Learner', xp: 3000 },
+            { name: 'Elite Scholar', xp: 5000 },
+            { name: 'Grandmaster', xp: 8000 },
+            { name: 'Ascendant Sage', xp: 12000 }
+        ];
+
         function getTitleForXP(xp = getXP()) {
             if (xp >= 12000) return 'Ascendant Sage';
             if (xp >= 8000) return 'Grandmaster';
@@ -5913,6 +5927,78 @@ Return ONLY the JSON array.`;
             if (xp >= 200) return 'Steady Student';
             if (xp >= 80) return 'Rising Scholar';
             return 'Rookie Scholar';
+        }
+
+        function getUnlockedTitles() {
+            const xp = getXP();
+            return ALL_TITLES.filter(t => xp >= t.xp);
+        }
+
+        function equipTitle(titleName) {
+            const unlocked = getUnlockedTitles();
+            if (unlocked.find(t => t.name === titleName)) {
+                localStorage.setItem('start25_equipped_title', titleName);
+                renderProfilePage();
+                showAlert('Title Equipped', `You are now wearing "${titleName}"`);
+                return true;
+            }
+            showAlert('Locked', 'You haven\'t unlocked this title yet.');
+            return false;
+        }
+
+        function showTitleSelector() {
+            const unlocked = getUnlockedTitles();
+            const equipped = localStorage.getItem('start25_equipped_title');
+            const currentXP = getXP();
+
+            let html = '<div style="max-height: 60vh; overflow-y: auto;">';
+            html += '<p style="color: var(--text-muted); margin-bottom: 16px; font-size: 13px;">Click a title to equip it. You unlock titles by earning XP.</p>';
+
+            ALL_TITLES.forEach(title => {
+                const isUnlocked = unlocked.find(t => t.name === title.name);
+                const isEquipped = equipped === title.name;
+                const isDefault = !equipped && title.name === getTitleForXP(currentXP);
+
+                let style = 'padding: 12px 16px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: ' + (isUnlocked ? 'pointer' : 'not-allowed') + ';';
+                let badge = '';
+
+                if (isEquipped) {
+                    style += ' background: var(--accent); color: var(--bg); border: 2px solid var(--accent);';
+                    badge = '<span style="font-size: 11px; font-weight: 600; padding: 2px 8px; background: var(--bg); color: var(--accent); border-radius: 100px;">EQUIPPED</span>';
+                } else if (isUnlocked) {
+                    style += ' background: var(--surface); border: 1px solid var(--border);';
+                    badge = '<span style="font-size: 11px; color: var(--text-muted);">Click to equip</span>';
+                } else {
+                    style += ' background: var(--surface-2); opacity: 0.5; border: 1px solid var(--border);';
+                    badge = '<span style="font-size: 11px; color: var(--text-muted);">Locked (' + title.xp + ' XP)</span>';
+                }
+
+                if (isDefault && !isEquipped) {
+                    badge = '<span style="font-size: 11px; color: var(--text-muted);">Auto-equipped</span>';
+                }
+
+                html += `<div style="${style}" ${isUnlocked ? `onclick="equipTitle('${title.name}')"` : ''}>`;
+                html += `<span style="font-weight: 600; font-size: 14px;">${title.name}</span>`;
+                html += badge;
+                html += '</div>';
+            });
+
+            html += '</div>';
+
+            // Use a simple modal approach
+            const modal = document.createElement('div');
+            modal.id = 'titleSelectorModal';
+            modal.className = 'modal-overlay active';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 400px;">
+                    <h2 style="margin-bottom: 8px;">Select Title</h2>
+                    ${html}
+                    <div class="modal-actions" style="margin-top: 20px;">
+                        <button class="btn-primary" onclick="document.getElementById('titleSelectorModal').remove();" style="width: 100%;">Close</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
         }
 
         function getXP() {
@@ -6161,10 +6247,11 @@ Return ONLY the JSON array.`;
             const customPic = localStorage.getItem('start25_profilePic');
             const username = localStorage.getItem('start25_username') || '';
             
+            const equippedTitle = localStorage.getItem('start25_equipped_title');
             leaderboardRef.set({
                 name: displayName,
                 username: username,
-                title: getTitleForXP(getXP()),
+                title: equippedTitle || getTitleForXP(getXP()),
                 // Do NOT store raw email in public leaderboard node
                 picture: customPic || user.picture || '',
                 xp: getXP(),
