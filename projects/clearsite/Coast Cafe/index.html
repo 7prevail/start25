@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coast Cafe — Point Cook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root {
+  --sand:    #f5efe4;
+  --sand-d:  #ecddc8;
+  --salt:    #f9f6f1;
+  --ocean:   #2d5f6e;
+  --ocean-d: #1e404c;
+  --foam:    #e8f2f4;
+  --clay:    #b87d52;
+  --clay-l:  #d4a077;
+  --kelp:    #4a6741;
+  --text:    #1e2820;
+  --mid:     #5a6155;
+  --light:   #8a9285;
+  --white:   #ffffff;
+  --border:  rgba(30,40,32,0.1);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  color: var(--text);
+  background: var(--salt);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 0 2.5rem;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: background 0.4s, border-color 0.4s;
+  border-bottom: 1px solid transparent;
+}
+nav.scrolled {
+  background: rgba(249,246,241,0.96);
+  backdrop-filter: blur(10px);
+  border-color: var(--border);
+}
+.nav-logo {
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+  font-size: 1.3rem;
+  color: var(--white);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: color 0.4s;
+}
+nav.scrolled .nav-logo { color: var(--ocean); }
+.nav-right {
+  display: flex; align-items: center; gap: 2rem;
+}
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  font-size: 0.8rem; font-weight: 400;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+nav.scrolled .nav-links a { color: var(--mid); }
+.nav-links a:hover { color: var(--white); }
+nav.scrolled .nav-links a:hover { color: var(--ocean); }
+.nav-cta {
+  font-size: 0.78rem; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ocean) !important;
+  background: var(--sand);
+  padding: 0.4rem 1rem;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: background 0.2s !important;
+}
+.nav-cta:hover { background: var(--sand-d) !important; }
+nav.scrolled .nav-cta { background: var(--ocean); color: var(--white) !important; }
+nav.scrolled .nav-cta:hover { background: var(--ocean-d) !important; }
+
+.mob-toggle {
+  display: none; background: none; border: none; cursor: pointer; padding: 4px;
+  flex-direction: column; gap: 5px;
+}
+.mob-toggle span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--white); transition: background 0.4s;
+}
+nav.scrolled .mob-toggle span { background: var(--text); }
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh;
+  background: var(--ocean-d);
+  position: relative;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 0 6rem;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 60% 30%, rgba(45,95,110,0.5) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 20% 70%, rgba(184,125,82,0.15) 0%, transparent 60%),
+    var(--ocean-d);
+}
+
+/* abstract wave shapes */
+.hero-wave {
+  position: absolute;
+  left: 0; right: 0;
+  pointer-events: none;
+}
+.hero-wave-1 {
+  bottom: -2px;
+  opacity: 0.12;
+}
+.hero-wave-2 {
+  bottom: 60px;
+  opacity: 0.07;
+}
+.hero-wave-3 {
+  top: 15%;
+  opacity: 0.05;
+  transform: rotate(180deg);
+}
+
+/* floating abstract circle */
+.hero-orb {
+  position: absolute;
+  top: 8%; right: 8%;
+  width: clamp(200px, 28vw, 380px);
+  height: clamp(200px, 28vw, 380px);
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+}
+.hero-orb::before {
+  content: '';
+  position: absolute;
+  width: 75%; height: 75%;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.hero-orb::after {
+  content: '';
+  position: absolute;
+  width: 45%; height: 45%;
+  border-radius: 50%;
+  background: rgba(232,242,244,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.72rem; font-weight: 400;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--clay-l);
+  margin-bottom: 1.5rem;
+  padding: 0 2.5rem;
+}
+.hero-tag::before, .hero-tag::after {
+  content: '';
+  display: block; height: 1px; width: 24px;
+  background: var(--clay-l); opacity: 0.6;
+}
+
+.hero-inner { padding: 0 2.5rem; max-width: 1100px; }
+
+h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(3.2rem, 7vw, 6.5rem);
+  font-weight: 300;
+  line-height: 1.0;
+  color: var(--white);
+  letter-spacing: -0.01em;
+  margin-bottom: 1.8rem;
+}
+h1 em {
+  font-style: italic;
+  color: rgba(255,255,255,0.45);
+  display: block;
+}
+
+.hero-sub {
+  font-size: 1rem; font-weight: 300;
+  color: rgba(255,255,255,0.55);
+  max-width: 380px;
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
+}
+
+.hero-pills {
+  display: flex; gap: 0.6rem; flex-wrap: wrap;
+  margin-bottom: 3rem;
+}
+.pill {
+  font-size: 0.75rem; font-weight: 400;
+  letter-spacing: 0.06em;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 100px;
+  color: rgba(255,255,255,0.6);
+}
+
+.hero-open {
+  display: flex; align-items: center; gap: 0.6rem;
+  font-size: 0.82rem; font-weight: 400;
+  color: rgba(255,255,255,0.45);
+}
+.hero-open-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #6fcf97;
+  animation: pulse 2.5s ease infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+
+/* ── MARQUEE ── */
+.marquee-wrap {
+  background: var(--clay);
+  padding: 0.7rem 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.marquee-track {
+  display: inline-flex;
+  animation: marquee 24s linear infinite;
+}
+.marquee-item {
+  font-size: 0.75rem; font-weight: 400;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+  padding: 0 2.5rem;
+}
+.marquee-dot {
+  color: rgba(255,255,255,0.35);
+  padding: 0 0.5rem;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── SHARED SECTION ── */
+section { padding: 5.5rem 2.5rem; }
+.inner { max-width: 1100px; margin: 0 auto; }
+
+.eyebrow {
+  font-size: 0.7rem; font-weight: 500;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--clay);
+  margin-bottom: 0.8rem;
+}
+
+h2 {
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+h2 em { font-style: italic; color: var(--ocean); }
+
+.body-text {
+  font-size: 1rem; font-weight: 300;
+  color: var(--mid); line-height: 1.8;
+}
+
+/* ── MENU ── */
+#menu { background: var(--sand); }
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 3rem;
+}
+.menu-col { padding: 2.2rem; border-right: 1px solid var(--border); }
+.menu-col:last-child { border-right: none; }
+.menu-col-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.4rem; font-weight: 300;
+  font-style: italic;
+  color: var(--ocean);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.menu-item {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(30,40,32,0.05);
+  gap: 1rem;
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-item-name { font-size: 0.88rem; font-weight: 400; color: var(--text); }
+.menu-item-desc { font-size: 0.77rem; color: var(--light); font-weight: 300; margin-top: 1px; }
+.menu-item-price {
+  font-size: 0.82rem; font-weight: 400;
+  color: var(--clay); white-space: nowrap; flex-shrink: 0;
+}
+.menu-note {
+  margin-top: 1.5rem;
+  font-size: 0.8rem; color: var(--light);
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.menu-note svg { width: 14px; height: 14px; stroke: var(--clay); fill: none; flex-shrink: 0; }
+
+/* ── ABOUT ── */
+#about { background: var(--salt); }
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: center;
+}
+.about-visual {
+  position: relative;
+  height: 480px;
+}
+.about-shape-1 {
+  position: absolute;
+  top: 0; left: 0; right: 15%;
+  bottom: 15%;
+  border-radius: 200px 200px 100px 100px;
+  background: var(--foam);
+  border: 1px solid rgba(45,95,110,0.12);
+}
+.about-shape-2 {
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 55%; height: 55%;
+  border-radius: 50%;
+  background: var(--sand);
+  border: 1px solid var(--border);
+}
+.about-quote {
+  position: absolute;
+  bottom: 18%; left: 50%;
+  transform: translateX(-50%);
+  background: var(--ocean);
+  color: var(--white);
+  border-radius: 8px;
+  padding: 1.4rem 1.6rem;
+  width: 80%;
+  z-index: 2;
+}
+.about-quote p {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 0.6rem;
+}
+.about-quote cite {
+  font-size: 0.72rem;
+  font-style: normal;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.08em;
+}
+.about-sun {
+  position: absolute;
+  top: 12%; right: 18%;
+  width: 60px; height: 60px;
+}
+.about-sun circle { fill: var(--clay-l); opacity: 0.3; }
+.about-sun line { stroke: var(--clay-l); stroke-width: 1.5; opacity: 0.4; }
+
+/* ── VISIT ── */
+#visit { background: var(--ocean); }
+.visit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem; align-items: start;
+}
+.visit-detail {
+  display: flex; gap: 1.2rem;
+  margin-bottom: 1.8rem;
+  padding-bottom: 1.8rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.visit-detail:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.visit-icon {
+  width: 36px; height: 36px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  margin-top: 2px;
+}
+.visit-icon svg { width: 16px; height: 16px; stroke: rgba(255,255,255,0.6); fill: none; stroke-width: 1.5; }
+.visit-label {
+  font-size: 0.7rem; font-weight: 500;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--clay-l);
+  margin-bottom: 4px;
+}
+.visit-val { font-size: 0.95rem; color: rgba(255,255,255,0.75); font-weight: 300; line-height: 1.6; }
+
+.visit-map {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 3rem 2rem;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center; gap: 1rem;
+  min-height: 300px; justify-content: center;
+}
+.map-compass {
+  width: 64px; height: 64px;
+  margin-bottom: 0.5rem;
+}
+.visit-map h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 300; font-style: italic;
+  font-size: 1.4rem; color: var(--white);
+}
+.visit-map p { font-size: 0.85rem; color: rgba(255,255,255,0.45); font-weight: 300; }
+.visit-map a {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--clay-l);
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  transition: color 0.2s;
+}
+.visit-map a:hover { color: var(--white); }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--text);
+  padding: 3.5rem 2.5rem;
+}
+.footer-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap; gap: 2rem;
+}
+.footer-logo {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem; font-weight: 300;
+  color: var(--white); margin-bottom: 0.4rem;
+}
+.footer-sub { font-size: 0.8rem; color: rgba(255,255,255,0.3); font-weight: 300; }
+.footer-links { display: flex; flex-direction: column; gap: 0.5rem; text-align: right; }
+.footer-links a {
+  font-size: 0.82rem; color: rgba(255,255,255,0.4);
+  text-decoration: none; font-weight: 300;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--clay-l); }
+.footer-bottom {
+  max-width: 1100px; margin: 2rem auto 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.72rem; color: rgba(255,255,255,0.2);
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  .menu-grid { grid-template-columns: 1fr; }
+  .menu-col { border-right: none; border-bottom: 1px solid var(--border); }
+  .menu-col:last-child { border-bottom: none; }
+  .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .about-visual { height: 300px; }
+  .visit-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+  .footer-links { text-align: left; }
+}
+@media (max-width: 640px) {
+  section { padding: 4rem 1.4rem; }
+  nav { padding: 0 1.4rem; }
+  .hero-inner { padding: 0 1.4rem; }
+  .nav-links { display: none; flex-direction: column; gap: 1.4rem; position: absolute; top: 60px; left: 0; right: 0; background: rgba(249,246,241,0.98); padding: 2rem 1.4rem; border-bottom: 1px solid var(--border); }
+  .nav-links.open { display: flex; }
+  .nav-links a { color: var(--mid) !important; font-size: 1rem; letter-spacing: 0.05em; }
+  .mob-toggle { display: flex; }
+  .nav-cta { display: none; }
+  h1 { font-size: 3rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <a href="#hero" class="nav-logo">Coast</a>
+  <div class="nav-right">
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#menu">Menu</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#visit">Visit</a></li>
+    </ul>
+    <a href="tel:0383539058" class="nav-cta">Call us</a>
+    <button class="mob-toggle" id="mobToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+
+  <!-- abstract wave SVGs -->
+  <svg class="hero-wave hero-wave-1" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,60 C240,100 480,20 720,60 C960,100 1200,20 1440,60 L1440,120 L0,120 Z" fill="rgba(232,242,244,1)"/>
+  </svg>
+  <svg class="hero-wave hero-wave-2" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,40 C360,90 720,10 1080,50 C1260,70 1380,30 1440,40 L1440,120 L0,120 Z" fill="rgba(232,242,244,1)"/>
+  </svg>
+  <svg class="hero-wave hero-wave-3" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,60 C180,20 360,100 540,60 C720,20 900,100 1080,60 C1260,20 1380,80 1440,60 L1440,120 L0,120 Z" fill="rgba(232,242,244,1)"/>
+  </svg>
+
+  <!-- floating orb -->
+  <div class="hero-orb"></div>
+
+  <div class="hero-tag">Point Cook · Saltwater Promenade</div>
+
+  <div class="hero-inner">
+    <h1>
+      Good coffee.
+      <em>Better mornings.</em>
+    </h1>
+    <p class="hero-sub">All-day breakfast, fresh lunch, and the kind of flat white that makes you slow down a little. Pull up a chair — we're not going anywhere.</p>
+    <div class="hero-pills">
+      <span class="pill">All-day breakfast</span>
+      <span class="pill">Specialty coffee</span>
+      <span class="pill">Casual lunch</span>
+      <span class="pill">Outdoor seating</span>
+      <span class="pill">Dog friendly</span>
+    </div>
+    <div class="hero-open">
+      <span class="hero-open-dot"></span>
+      Open today · 8am – 4pm
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">All-day breakfast</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Specialty coffee</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Fresh lunch</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Outdoor seating</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Vegetarian options</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Point Cook locals</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Saltwater Coast</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">All-day breakfast</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Specialty coffee</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Fresh lunch</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Outdoor seating</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Vegetarian options</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Point Cook locals</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Saltwater Coast</span><span class="marquee-dot">·</span>
+  </div>
+</div>
+<!-- MENU -->
+<section id="menu">
+  <div class="inner">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:end;margin-bottom:3rem;">
+      <div>
+        <div class="eyebrow">What we do</div>
+        <h2>Simple food,<br><em>done properly.</em></h2>
+      </div>
+      <p class="body-text" style="padding-bottom:0.5rem;">We keep it honest. Eggs done right, toast worth eating, coffee worth coming back for. Prices between $3 and $16 — nothing on here will surprise you.</p>
+    </div>
+
+    <div class="menu-grid">
+
+      <!-- BREAKFAST -->
+      <div class="menu-col">
+        <div class="menu-col-title">Breakfast</div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Bacon & egg roll</div>
+            <div class="menu-item-desc">Milk bun, smoked bacon, free-range egg, house sauce</div>
+          </div>
+          <div class="menu-item-price">$9</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Big breakfast</div>
+            <div class="menu-item-desc">Eggs your way, bacon, sausage, toast, grilled tomato</div>
+          </div>
+          <div class="menu-item-price">$16</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Eggs on toast</div>
+            <div class="menu-item-desc">Scrambled, poached or fried · sourdough</div>
+          </div>
+          <div class="menu-item-price">$11</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Smashed avo</div>
+            <div class="menu-item-desc">Feta, cherry tomato, dukkah, sourdough</div>
+          </div>
+          <div class="menu-item-price">$14</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Sausage roll</div>
+            <div class="menu-item-desc">Buttery pastry, house-made filling, tomato relish</div>
+          </div>
+          <div class="menu-item-price">$6</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Vegemite toast</div>
+            <div class="menu-item-desc">Thick-cut white or sourdough</div>
+          </div>
+          <div class="menu-item-price">$4</div>
+        </div>
+
+        <p class="menu-note">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Vegetarian options available — just ask.
+        </p>
+      </div>
+
+      <!-- COFFEE -->
+      <div class="menu-col">
+        <div class="menu-col-title">Coffee & drinks</div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Flat white</div>
+            <div class="menu-item-desc">House blend · alt milks available</div>
+          </div>
+          <div class="menu-item-price">$4.50</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Cappuccino</div>
+            <div class="menu-item-desc">House blend · alt milks available</div>
+          </div>
+          <div class="menu-item-price">$4.50</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Long black</div>
+            <div class="menu-item-desc">Double shot, water first</div>
+          </div>
+          <div class="menu-item-price">$4</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Chai latte</div>
+            <div class="menu-item-desc">Spiced, steamed milk</div>
+          </div>
+          <div class="menu-item-price">$5</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Babyccino</div>
+            <div class="menu-item-desc">Steamed milk, dusting of chocolate</div>
+          </div>
+          <div class="menu-item-price">$1.50</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Juice & cold drinks</div>
+            <div class="menu-item-desc">Orange, apple, water</div>
+          </div>
+          <div class="menu-item-price">from $3</div>
+        </div>
+
+        <p class="menu-note">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          We're a cash-friendly cafe — EFTPOS also accepted.
+        </p>
+      </div>
+
+      <!-- LUNCH -->
+      <div class="menu-col">
+        <div class="menu-col-title">Lunch</div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Toasted sandwich</div>
+            <div class="menu-item-desc">Ham & cheese, or chicken & avo</div>
+          </div>
+          <div class="menu-item-price">$10</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Calamari</div>
+            <div class="menu-item-desc">Lightly crumbed, lemon, aioli</div>
+          </div>
+          <div class="menu-item-price">$14</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Chicken schnitzel roll</div>
+            <div class="menu-item-desc">Crusty roll, slaw, chipotle mayo</div>
+          </div>
+          <div class="menu-item-price">$13</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Soup of the day</div>
+            <div class="menu-item-desc">Ask us what's on · with bread</div>
+          </div>
+          <div class="menu-item-price">$10</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Kid's meal</div>
+            <div class="menu-item-desc">Nuggets or cheesy toast · juice included</div>
+          </div>
+          <div class="menu-item-price">$8</div>
+        </div>
+        <div class="menu-item">
+          <div>
+            <div class="menu-item-name">Daily cake slice</div>
+            <div class="menu-item-desc">Whatever came out of the oven this morning</div>
+          </div>
+          <div class="menu-item-price">$5</div>
+        </div>
+
+        <p class="menu-note">
+          <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          Takeaway always available.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="inner">
+    <div class="about-grid">
+
+      <div class="about-visual">
+        <div class="about-shape-1"></div>
+        <div class="about-shape-2"></div>
+
+        <!-- abstract sun -->
+        <svg class="about-sun" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="30" cy="30" r="12"/>
+          <line x1="30" y1="4" x2="30" y2="12"/>
+          <line x1="30" y1="48" x2="30" y2="56"/>
+          <line x1="4" y1="30" x2="12" y2="30"/>
+          <line x1="48" y1="30" x2="56" y2="30"/>
+          <line x1="12" y1="12" x2="18" y2="18"/>
+          <line x1="42" y1="42" x2="48" y2="48"/>
+          <line x1="48" y1="12" x2="42" y2="18"/>
+          <line x1="18" y1="42" x2="12" y2="48"/>
+        </svg>
+
+        <div class="about-quote">
+          <p>"Always a friendly and lovely staff, and very welcoming. Food is fantastic."</p>
+          <cite>— A regular, Point Cook</cite>
+        </div>
+      </div>
+
+      <div>
+        <div class="eyebrow">Our story</div>
+        <h2>The kind of place<br><em>you keep coming back to.</em></h2>
+        <p class="body-text" style="margin-bottom:1.4rem;">Coast is a neighbourhood cafe — the real kind. The sort where the staff remember how you take your coffee, where kids are welcome and the prams fit through the door, where you can sit outside and feel the morning air off Saltwater Promenade.</p>
+        <p class="body-text" style="margin-bottom:2rem;">We've been part of the Saltwater Coast community for years. Walk-ins welcome, locals encouraged, visitors made to feel at home.</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div style="background:var(--foam);border-radius:8px;padding:1.4rem;">
+            <div style="font-family:'Fraunces',serif;font-size:2rem;font-weight:300;color:var(--ocean);line-height:1;">8am</div>
+            <div style="font-size:0.78rem;color:var(--mid);margin-top:4px;">We open every morning, seven days</div>
+          </div>
+          <div style="background:var(--sand);border-radius:8px;padding:1.4rem;">
+            <div style="font-family:'Fraunces',serif;font-size:2rem;font-weight:300;color:var(--clay);line-height:1;">4pm</div>
+            <div style="font-size:0.78rem;color:var(--mid);margin-top:4px;">Last orders — don't be late</div>
+          </div>
+          <div style="background:var(--sand);border-radius:8px;padding:1.4rem;">
+            <div style="font-family:'Fraunces',serif;font-size:2rem;font-weight:300;color:var(--kelp);line-height:1;">Wi-Fi</div>
+            <div style="font-size:0.78rem;color:var(--mid);margin-top:4px;">Free for customers — ask for the code</div>
+          </div>
+          <div style="background:var(--foam);border-radius:8px;padding:1.4rem;">
+            <div style="font-family:'Fraunces',serif;font-size:2rem;font-weight:300;color:var(--ocean);line-height:1;">Dogs</div>
+            <div style="font-size:0.78rem;color:var(--mid);margin-top:4px;">Welcome outside — we'll bring them water</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- VISIT -->
+<section id="visit">
+  <div class="inner">
+    <div style="margin-bottom:3.5rem;">
+      <div class="eyebrow" style="color:var(--clay-l);">Find us</div>
+      <h2 style="color:var(--white);">Come find us on<br><em style="color:rgba(255,255,255,0.4);">a Saturday morning.</em></h2>
+    </div>
+
+    <div class="visit-grid">
+      <div>
+        <div class="visit-detail">
+          <div class="visit-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div>
+            <div class="visit-label">Address</div>
+            <div class="visit-val">261 Saltwater Promenade<br>Point Cook VIC 3030</div>
+          </div>
+        </div>
+
+        <div class="visit-detail">
+          <div class="visit-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <div class="visit-label">Hours</div>
+            <div class="visit-val">Monday – Friday &nbsp;8am – 4pm<br>Saturday – Sunday &nbsp;8am – 4pm<br><span style="font-size:0.8rem;color:rgba(255,255,255,0.3);">All-day breakfast served until close</span></div>
+          </div>
+        </div>
+
+        <div class="visit-detail">
+          <div class="visit-icon">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          </div>
+          <div>
+            <div class="visit-label">Phone</div>
+            <div class="visit-val"><a href="tel:0383539058" style="color:rgba(255,255,255,0.75);text-decoration:none;">03 8353 9058</a></div>
+          </div>
+        </div>
+
+        <div class="visit-detail">
+          <div class="visit-icon">
+            <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <div>
+            <div class="visit-label">Parking & access</div>
+            <div class="visit-val">Free parking on site · wheelchair accessible<br><span style="font-size:0.8rem;color:rgba(255,255,255,0.3);">Inside Saltwater Coast Lifestyle Centre</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="visit-map">
+        <!-- abstract compass rose -->
+        <svg class="map-compass" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+          <circle cx="32" cy="32" r="20" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+          <polygon points="32,4 36,32 32,28 28,32" fill="rgba(184,125,82,0.7)"/>
+          <polygon points="32,60 28,32 32,36 36,32" fill="rgba(255,255,255,0.2)"/>
+          <polygon points="4,32 32,28 28,32 32,36" fill="rgba(255,255,255,0.15)"/>
+          <polygon points="60,32 32,36 36,32 32,28" fill="rgba(255,255,255,0.1)"/>
+          <circle cx="32" cy="32" r="3" fill="rgba(255,255,255,0.5)"/>
+          <text x="32" y="18" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.5)" font-family="DM Sans,sans-serif">N</text>
+        </svg>
+
+        <h3>Saltwater Promenade</h3>
+        <p>Point Cook · Victoria · 3030<br>Inside the Lifestyle Centre</p>
+        <a href="https://maps.google.com/?q=261+Saltwater+Promenade+Point+Cook+VIC" target="_blank">Open in Google Maps →</a>
+
+        <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,0.08);width:100%;">
+          <div style="font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:0.8rem;">Also find us on</div>
+          <div style="display:flex;justify-content:center;gap:1.2rem;">
+            <a href="https://www.facebook.com/search/top?q=coast%20cafe%20point%20cook" target="_blank" style="font-size:0.8rem;color:rgba(255,255,255,0.4);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.8)'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">Facebook</a>
+            <span style="color:rgba(255,255,255,0.15);">·</span>
+            <a href="https://www.instagram.com/" target="_blank" style="font-size:0.8rem;color:rgba(255,255,255,0.4);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.8)'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">Instagram</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">Coast Cafe</div>
+      <div class="footer-sub">261 Saltwater Promenade · Point Cook VIC 3030</div>
+      <div style="margin-top:1rem;display:flex;gap:1.2rem;align-items:center;">
+        <a href="tel:0383539058" style="font-size:0.82rem;color:rgba(255,255,255,0.35);text-decoration:none;font-weight:300;transition:color 0.2s;" onmouseover="this.style.color='rgba(212,160,119,0.9)'" onmouseout="this.style.color='rgba(255,255,255,0.35)'">03 8353 9058</a>
+        <span style="color:rgba(255,255,255,0.1);">·</span>
+        <span style="font-size:0.82rem;color:rgba(255,255,255,0.2);font-weight:300;">Open 8am – 4pm daily</span>
+      </div>
+    </div>
+
+    <div class="footer-links">
+      <a href="#menu">Menu</a>
+      <a href="#about">About</a>
+      <a href="#visit">Find us</a>
+      <a href="tel:0383539058">Call us</a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2025 Coast Cafe, Point Cook. All rights reserved.</span>
+    <span style="font-style:italic;font-family:'Fraunces',serif;font-weight:300;font-size:0.82rem;color:rgba(255,255,255,0.12);">Good coffee. Better mornings.</span>
+  </div>
+</footer>
+
+<!-- STICKY MOBILE ORDER BAR -->
+<div id="stickyBar" style="
+  display:none;
+  position:fixed;
+  bottom:0;left:0;right:0;
+  z-index:200;
+  background:var(--ocean-d);
+  border-top:1px solid rgba(255,255,255,0.08);
+  padding:0.8rem 1.4rem;
+  justify-content:space-between;
+  align-items:center;
+">
+  <div>
+    <div style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.4);">Coast Cafe</div>
+    <div style="font-size:0.88rem;color:var(--white);font-weight:300;">Open today · 8am – 4pm</div>
+  </div>
+  <a href="tel:0383539058" style="
+    background:var(--clay);
+    color:var(--white);
+    padding:0.55rem 1.2rem;
+    border-radius:3px;
+    font-size:0.82rem;
+    font-weight:500;
+    letter-spacing:0.04em;
+    text-decoration:none;
+    white-space:nowrap;
+  ">Call us</a>
+</div>
+
+<script>
+  // Nav scroll state
+  const nav = document.getElementById('mainNav');
+  function updateNav() {
+    if (window.scrollY > 40) {
+      nav.classList.add('scrolled');
+    } else {
+      nav.classList.remove('scrolled');
+    }
+  }
+  window.addEventListener('scroll', updateNav, { passive: true });
+  updateNav();
+
+  // Mobile toggle
+  const mobToggle = document.getElementById('mobToggle');
+  const navLinks  = document.getElementById('navLinks');
+  mobToggle.addEventListener('click', () => {
+    const open = navLinks.classList.toggle('open');
+    mobToggle.setAttribute('aria-expanded', open);
+  });
+  navLinks.querySelectorAll('a').forEach(a =>
+    a.addEventListener('click', () => navLinks.classList.remove('open'))
+  );
+
+  // Smooth scroll with nav offset
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', function(e) {
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        window.scrollTo({ top: target.offsetTop - 60, behavior: 'smooth' });
+      }
+    });
+  });
+
+  // Sticky mobile bar — shows after hero
+  const stickyBar = document.getElementById('stickyBar');
+  const hero = document.getElementById('hero');
+  function updateSticky() {
+    if (window.innerWidth <= 640) {
+      const heroBottom = hero.getBoundingClientRect().bottom;
+      stickyBar.style.display = heroBottom < 0 ? 'flex' : 'none';
+    } else {
+      stickyBar.style.display = 'none';
+    }
+  }
+  window.addEventListener('scroll', updateSticky, { passive: true });
+  window.addEventListener('resize', updateSticky);
+  updateSticky();
+
+  // Subtle fade-in on scroll for sections
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.menu-col, .about-quote, .visit-detail').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(18px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+
+  // Stagger menu cols
+  document.querySelectorAll('.menu-col').forEach((el, i) => {
+    el.style.transitionDelay = `${i * 0.1}s`;
+  });
+
+  // Stagger visit details
+  document.querySelectorAll('.visit-detail').forEach((el, i) => {
+    el.style.transitionDelay = `${i * 0.08}s`;
+  });
+</script>
+</body>
+</html>
