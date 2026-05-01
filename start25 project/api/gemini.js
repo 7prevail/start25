@@ -5,11 +5,43 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages } = req.body;
+    const { messages, model } = req.body;
     
     if (!messages || !Array.isArray(messages)) {
       console.error('Invalid request body:', req.body);
       return res.status(400).json({ error: 'Missing or invalid messages array' });
+    }
+    
+    // If client requests a Groq model, route directly to Groq
+    const groqModels = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it'];
+    if (model && groqModels.some(m => model.includes(m))) {
+      try {
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: messages,
+            temperature: req.body.temperature || 0.7
+          })
+        });
+
+        const groqData = await groqResponse.json();
+        
+        if (groqData.error) {
+          console.error('Groq error:', groqData.error);
+          // Fall through to Gemini
+        } else {
+          console.log('Success with Groq model:', model);
+          return res.status(200).json(groqData);
+        }
+      } catch (groqError) {
+        console.error('Groq exception:', groqError.message);
+        // Fall through to Gemini
+      }
     }
     
     // Convert OpenAI-style messages to Gemini format
@@ -80,12 +112,43 @@ export default async function handler(req, res) {
       }
     }
 
-    // All models failed
-    console.error('All Gemini models failed');
-    return res.status(503).json({ 
-      error: 'All AI models are currently unavailable. Please try again in a few moments.',
-      lastError: lastError?.message
-    });
+    // All Gemini models failed, try Groq as fallback
+    console.error('All Gemini models failed, trying Groq fallback');
+    
+    try {
+      const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: messages,
+          temperature: 0.7
+        })
+      });
+
+      const groqData = await groqResponse.json();
+      
+      if (groqData.error) {
+        console.error('Groq fallback also failed:', groqData.error);
+        return res.status(503).json({ 
+          error: 'All AI models are currently unavailable. Please try again in a few moments.',
+          lastError: lastError?.message
+        });
+      }
+
+      console.log('Success with Groq fallback');
+      return res.status(200).json(groqData);
+      
+    } catch (groqError) {
+      console.error('Groq fallback exception:', groqError.message);
+      return res.status(503).json({ 
+        error: 'All AI models are currently unavailable. Please try again in a few moments.',
+        lastError: lastError?.message
+      });
+    }
     
   } catch (error) {
     console.error('Gemini API handler error:', error);

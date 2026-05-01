@@ -177,6 +177,9 @@
     </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, .page, .card, .container, .header, .bottom-nav, .modal, .modal-overlay, .focus-overlay {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
         :root {
             --bg: #fafafa;
             --surface: #ffffff;
@@ -251,6 +254,11 @@
             border: 1px solid var(--border);
             border-radius: 100px;
             cursor: pointer;
+            color: var(--text);
+        }
+        [data-theme="dark"] .profile-pill {
+            background: #2a2a2a;
+            border-color: #555;
         }
         .avatar {
             width: 28px;
@@ -505,8 +513,11 @@
             cursor: pointer;
             font-size: 10px;
             text-transform: uppercase;
+            transition: color 0.2s;
         }
-        .nav-item:hover, .nav-item.active { color: var(--accent); }
+        .nav-item:hover, .nav-item.active { color: var(--accent); font-weight: 600; }
+        [data-theme="dark"] .nav-item { color: #999; }
+        [data-theme="dark"] .nav-item:hover, [data-theme="dark"] .nav-item.active { color: var(--accent); }
         .nav-icon { font-size: 24px; display: flex; align-items: center; justify-content: center; }
         .nav-add {
             background: var(--accent);
@@ -569,11 +580,15 @@
             background: transparent;
             font-size: 15px;
             cursor: pointer;
+            color: var(--text);
         }
         .modal-actions .btn-primary {
             background: var(--accent);
             color: var(--bg);
             border-color: var(--accent);
+        }
+        [data-theme="dark"] .modal-actions button {
+            color: #e0e0e0;
         }
         .focus-overlay {
             position: fixed;
@@ -1235,7 +1250,7 @@
         </div>
     </div>
 
-    <!-- PAGE 4: AI Chat -->
+    <!-- PAGE 4: Iroh Chat -->
     <div class="page" id="page-chat">
         <div class="container">
             <div class="header">
@@ -1358,6 +1373,9 @@
         <div class="container">
             <div class="header">
                 <div class="brand">start25</div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button onclick="showPage('home')" style="background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 8px 16px; cursor: pointer; font-size: 14px; color: var(--text);">← Back</button>
+                </div>
             </div>
             <h1 class="page-title">Settings</h1>
             <div class="settings-list">
@@ -1459,7 +1477,7 @@
                     <div class="setting-left">
                         <div class="setting-icon">🎙️</div>
                         <div>
-                            <h4 style="font-size: 15px; margin-bottom: 4px;">AI Podcast</h4>
+                            <h4 style="font-size: 15px; margin-bottom: 4px;">Iroh Podcast</h4>
                             <p style="font-size: 13px; color: var(--text-muted);">Generate podcast from your study materials</p>
                         </div>
                     </div>
@@ -1501,9 +1519,9 @@
         <div class="container">
             <div class="header">
                 <div class="brand">start25</div>
-                <button class="profile-pill" onclick="showPage('settings')">
+                <button class="profile-pill" onclick="showPage('profile')">
                     <div class="avatar">U</div>
-                    <span>Settings</span>
+                    <span>Profile</span>
                 </button>
             </div>
             
@@ -1623,7 +1641,7 @@
         </div>
     </div>
 
-    <!-- PAGE 7: AI Podcast -->
+    <!-- PAGE 7: Iroh Podcast -->
     <div class="page" id="page-podcast">
         <div class="container">
             <div class="header">
@@ -1633,7 +1651,7 @@
                     <span>Profile</span>
                 </button>
             </div>
-            <h1 class="page-title">🎙️ AI Podcast</h1>
+            <h1 class="page-title">🎙️ Iroh Podcast</h1>
             <p style="color: var(--text-muted); margin-bottom: 24px;">Generate a conversational podcast from your study materials</p>
             
             <!-- Podcast Generator -->
@@ -1700,7 +1718,7 @@
                 </div>
             </div>
             <div style="margin-top: 24px; text-align: center;">
-                <button class="btn" onclick="renderLeaderboard()">🔄 Refresh</button>
+                <button class="btn" onclick="renderLeaderboard()">↻ Refresh</button>
             </div>
         </div>
     </div>
@@ -1746,7 +1764,7 @@
             <div id="studyModeSelection" style="margin-bottom: 24px;">
                 <div style="display: flex; gap: 12px; margin-bottom: 24px;">
                     <button id="selfStudyBtn" class="btn btn-primary" onclick="selectStudyMode('self')" style="flex: 1;">Self-Study</button>
-                    <button id="aiStudyBtn" class="btn" onclick="selectStudyMode('ai')" style="flex: 1;">AI Study</button>
+                    <button id="aiStudyBtn" class="btn" onclick="selectStudyMode('ai')" style="flex: 1;">Iroh Study</button>
                 </div>
             </div>
             
@@ -1778,7 +1796,7 @@
                 </div>
                 <div id="aiStudyQuiz" class="card" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h3 style="margin: 0; font-size: 16px;">AI Study Quiz</h3>
+                        <h3 style="margin: 0; font-size: 16px;">Iroh Study Quiz</h3>
                         <span id="aiStudyProgress" style="font-size: 14px; color: var(--text-muted);">0%</span>
                     </div>
                     <div style="width: 100%; height: 8px; background: var(--surface-2); border-radius: 4px; margin-bottom: 24px; overflow: hidden;">
@@ -1832,9 +1850,28 @@
     </div>
 
     <script>
+        // Safe localStorage parser helper
+        function safeParse(key, defaultValue) {
+            try {
+                const value = localStorage.getItem(key);
+                if (value === null) return defaultValue;
+                return JSON.parse(value);
+            } catch (e) {
+                console.error(`Failed to parse ${key}:`, e);
+                return defaultValue;
+            }
+        }
+
+        // Truncate text helper
+        function truncateText(text, maxLength) {
+            if (!text) return '';
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
         // State
-        let subjects = JSON.parse(localStorage.getItem('start25_subjects') || '[]');
-        let flashcards = JSON.parse(localStorage.getItem('start25_flashcards') || '[]');
+        let subjects = safeParse('start25_subjects', []);
+        let flashcards = safeParse('start25_flashcards', []);
         let promptCallback = null;
         let timerInterval, timeRemaining = 25 * 60, isRunning = false;
         let studyMode = false, currentCardIndex = 0, editingSubjectIndex = 0;
@@ -1849,10 +1886,17 @@
         function initializeSubjectLevels() {
             subjects = subjects.map(subject => ({
                 ...subject,
+                name: subject.name || 'Untitled',
+                tags: subject.tags || [],
+                materials: subject.materials || [],
+                weakAreas: subject.weakAreas || [],
                 level: subject.level || 1,
                 xp: subject.xp || 0,
-                progress: subject.progress || 0
+                progress: subject.progress || 0,
+                emoji: subject.emoji || '📚'
             }));
+            // Remove any subjects without a name
+            subjects = subjects.filter(s => s.name && s.name !== 'Untitled');
             saveSubjects();
         }
 
@@ -2144,8 +2188,11 @@
         }
         
         async function generateSelfStudyTasks() {
-            const subjectName = document.getElementById('selfStudySubject').value;
-            const topic = document.getElementById('selfStudyTopic').value;
+            const subjectSelect = document.getElementById('selfStudySubject');
+            const topicInput = document.getElementById('selfStudyTopic');
+            if (!subjectSelect || !topicInput) return;
+            const subjectName = subjectSelect.value;
+            const topic = topicInput.value;
             
             if (!subjectName) {
                 showAlert('No Subject', 'Please select a subject first.');
@@ -2162,6 +2209,7 @@
             
             const taskList = document.getElementById('taskList');
             const tasksContainer = document.getElementById('selfStudyTasks');
+            if (!taskList || !tasksContainer) return;
             
             tasksContainer.style.display = 'block';
             taskList.innerHTML = '<p style="color: var(--text-muted);">Generating tasks...</p>';
@@ -2192,7 +2240,7 @@
                 }
                 
                 const data = await r.json();
-                if (data.error || !data.choices) {
+                if (data.error || !data.choices || !data.choices[0] || !data.choices[0].message) {
                     throw new Error(data.error || 'Invalid API response');
                 }
                 const tasks = data.choices[0].message.content;
@@ -2220,7 +2268,9 @@
         let aiStudyIndex = 0;
         
         async function startAIStudy() {
-            const subjectName = document.getElementById('aiStudySubject').value;
+            const subjectSelect = document.getElementById('aiStudySubject');
+            if (!subjectSelect) return;
+            const subjectName = subjectSelect.value;
             
             if (!subjectName) {
                 showAlert('No Subject', 'Please select a subject first.');
@@ -2233,6 +2283,7 @@
             const quizContainer = document.getElementById('aiStudyQuiz');
             const questionContainer = document.getElementById('aiStudyQuestion');
             const optionsContainer = document.getElementById('aiStudyOptions');
+            if (!quizContainer || !questionContainer || !optionsContainer) return;
             
             quizContainer.style.display = 'block';
             questionContainer.innerHTML = '<p style="color: var(--text-muted);">Generating questions...</p>';
@@ -2272,9 +2323,14 @@
                 const jsonMatch = response.match(/\[[\s\S]*\]/);
                 
                 if (jsonMatch) {
-                    const questions = JSON.parse(jsonMatch[0]);
-                    currentQuestions = questions;
-                    renderQuestions(questions, subjectName);
+                    try {
+                        const questions = JSON.parse(jsonMatch[0]);
+                        aiStudyQuestions = questions;
+                        aiStudyIndex = 0;
+                        renderAIStudyQuestion(subjectName);
+                    } catch (parseError) {
+                        throw new Error('Failed to parse questions: ' + parseError.message);
+                    }
                 } else {
                     throw new Error('Invalid response format');
                 }
@@ -2333,8 +2389,11 @@
         }
         
         async function generateImprovementPlan() {
-            const subjectName = sanitizeInput(document.getElementById('studyGuideSubject').value, 100);
-            const goal = sanitizeInput(document.getElementById('studyGuideGoal').value, 300);
+            const subjectSelect = document.getElementById('studyGuideSubject');
+            const goalInput = document.getElementById('studyGuideGoal');
+            if (!subjectSelect || !goalInput) return;
+            const subjectName = sanitizeInput(subjectSelect.value, 100);
+            const goal = sanitizeInput(goalInput.value, 300);
             
             if (!subjectName) {
                 showAlert('No Subject', 'Please select a subject first.');
@@ -2355,6 +2414,7 @@
             if (!subject) return;
             
             const planContainer = document.getElementById('improvementPlan');
+            if (!planContainer) return;
             planContainer.innerHTML = '<p style="font-size:14px;color:var(--text-muted);">Generating improvement plan...</p>';
             
             try {
@@ -2472,7 +2532,7 @@
                     })
                 });
                 const data = await r.json();
-                if (data.error || !data.choices) {
+                if (data.error || !data.choices || !data.choices[0] || !data.choices[0].message) {
                     throw new Error(data.error || 'Invalid API response');
                 }
                 const guide = data.choices[0].message.content;
@@ -2923,8 +2983,9 @@
             icon.title = 'Click to change emoji';
             
             const name = document.createElement('div');
-            name.style.cssText = 'font-weight: 600; font-size: 15px; line-height: 1.3;';
+            name.style.cssText = 'font-weight: 600; font-size: 15px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;';
             name.textContent = subject.name;
+            name.title = subject.name;
             
             // Level badge
             const levelBadge = document.createElement('div');
@@ -3011,7 +3072,7 @@
         }
         
         function toggleSection(tag) {
-            const collapsed = JSON.parse(localStorage.getItem('start25_collapsed_sections') || '[]');
+            const collapsed = safeParse('start25_collapsed_sections', []);
             const index = collapsed.indexOf(tag);
             
             if (index > -1) {
@@ -3037,7 +3098,7 @@
         }
         
         function isSectionCollapsed(tag) {
-            const collapsed = JSON.parse(localStorage.getItem('start25_collapsed_sections') || '[]');
+            const collapsed = safeParse('start25_collapsed_sections', []);
             return collapsed.includes(tag);
         }
 
@@ -3599,7 +3660,13 @@ Return ONLY the JSON array, no other text.`;
                 
                 const match = response.match(/\[[\s\S]*\]/);
                 if (match) {
-                    const questions = JSON.parse(match[0]);
+                    let questions;
+                    try {
+                        questions = JSON.parse(match[0]);
+                    } catch (parseError) {
+                        console.error('Failed to parse questions:', parseError);
+                        return [];
+                    }
                     // Validate and ensure questions have required fields
                     return questions.map(q => ({
                         question: q.question || 'Question',
@@ -3972,7 +4039,7 @@ Return ONLY the JSON array, no other text.`;
         }
 
         function updateStats() {
-            const streak = JSON.parse(localStorage.getItem('start25_streak') || '{"count": 0}');
+            const streak = safeParse('start25_streak', {count: 0});
             const el = document.getElementById('streakDisplay');
             
             let icon = '🔥';
@@ -4066,9 +4133,9 @@ Return ONLY the JSON array, no other text.`;
         }
 
         function renderStreakCalendar() {
-            const container = document.getElementById('streakCalendar');
+            const container = document.getElementById('profileStreakCalendar');
             if (!container) return;
-            const sessions = JSON.parse(localStorage.getItem('start25_sessions') || '[]');
+            const sessions = safeParse('start25_sessions', []);
             
             let html = '';
             for (let i = 0; i < 30; i++) {
@@ -4104,7 +4171,7 @@ Return ONLY the JSON array, no other text.`;
             const username = rawUsername.toLowerCase().replace(/[^a-z0-9_]/g, '');
             const profilePic = (googleUserData && googleUserData.picture) || localStorage.getItem('start25_profilePic');
             const userEmail = (googleUserData && googleUserData.email) || '';
-            const level = JSON.parse(localStorage.getItem('start25_level') || '{"level": 1, "xp": 0, "maxXp": 100}');
+            const level = safeParse('start25_level', {level: 1, xp: 0, maxXp: 100});
             
             // Update user header
             const avatarEl = document.getElementById('profilePageAvatar');
@@ -4141,8 +4208,8 @@ Return ONLY the JSON array, no other text.`;
             if (xpEl) xpEl.textContent = `${level.xp} / ${level.maxXp} XP`;
             
             // Stats
-            const sessions = JSON.parse(localStorage.getItem('start25_sessions') || '[]');
-            const streak = JSON.parse(localStorage.getItem('start25_streak') || '{"count": 0}');
+            const sessions = safeParse('start25_sessions', []);
+            const streak = safeParse('start25_streak', {count: 0});
             
             // Calculate study time
             const today = new Date().toDateString();
@@ -4372,7 +4439,13 @@ Return ONLY the JSON array, no other text.`;
                 // Try to parse as JSON
                 const match = response.match(/\[[\s\S]*\]/);
                 if (match) {
-                    const tasks = JSON.parse(match[0]);
+                    let tasks;
+                    try {
+                        tasks = JSON.parse(match[0]);
+                    } catch (parseError) {
+                        console.error('Failed to parse tasks:', parseError);
+                        return null;
+                    }
                     return tasks.map(t => ({ 
                         text: t.text, 
                         type: t.type || 'read', 
@@ -4501,14 +4574,14 @@ Return ONLY the JSON array, no other text.`;
                 saveFocusHistory(true);
             }
             
-            const sessions = JSON.parse(localStorage.getItem('start25_sessions') || '[]');
+            const sessions = safeParse('start25_sessions', []);
             sessions.push({ date: new Date().toISOString() });
             localStorage.setItem('start25_sessions', JSON.stringify(sessions));
             
             addXP(50);
             
             const today = new Date().toDateString();
-            const streak = JSON.parse(localStorage.getItem('start25_streak') || '{"count": 0, "lastDate": null}');
+            const streak = safeParse('start25_streak', {count: 0, lastDate: null});
             if (streak.lastDate !== today) {
                 const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
@@ -4610,7 +4683,7 @@ Return ONLY the JSON array, no other text.`;
                 });
                 
                 const data = await response.json();
-                if (data.error || !data.choices) {
+                if (data.error || !data.choices || !data.choices[0] || !data.choices[0].message) {
                     throw new Error(data.error || 'Failed to generate podcast');
                 }
                 
@@ -4748,7 +4821,7 @@ Return ONLY the JSON array, no other text.`;
                     })
                 });
                 const data = await r.json();
-                if (data.error || !data.choices) {
+                if (data.error || !data.choices || !data.choices[0] || !data.choices[0].message) {
                     throw new Error(data.error || 'Invalid API response');
                 }
                 
@@ -5061,7 +5134,13 @@ Return ONLY the JSON array.`;
                 
                 const match = response.match(/\[[\s\S]*\]/);
                 if (match) {
-                    const cards = JSON.parse(match[0]);
+                    let cards;
+                    try {
+                        cards = JSON.parse(match[0]);
+                    } catch (parseError) {
+                        console.error('Failed to parse flashcards:', parseError);
+                        return [];
+                    }
                     return cards.map((c, i) => ({
                         id: i,
                         subject: subject,
@@ -6256,8 +6335,10 @@ Return ONLY the JSON array.`;
             html += '<div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">' + Math.round((quizScore / currentQuiz.length) * 100) + '%</div>';
             html += '<p style="color: var(--text-muted); margin-bottom: 24px;">' + (passed ? 'Great job! You passed!' : 'Keep studying those weak areas') + '</p>';
             html += '<button class="btn btn-primary" onclick="startQuiz()" style="margin-right: 12px;">Retake Test</button>';
-            html += '<button class="btn" onclick="showPage(\'home\')">Back to Home</button>';
+            html += '<button class="btn" onclick="showPage(\'home\')" style="margin-right: 12px;">Back to Home</button>';
+            html += '<button class="btn" onclick="getIrohFeedback()" style="margin-right: 12px;">Iroh Feedback</button>';
             html += '</div>';
+            html += '<div id="irohFeedbackArea"></div>';
             
             // Review section
             html += '<h3 style="margin-bottom: 16px; font-size: 18px;">Review Your Answers</h3>';
@@ -6335,6 +6416,54 @@ Return ONLY the JSON array.`;
             
             // Award XP
             addXP(passed ? 100 : 25);
+        }
+
+        async function getIrohFeedback() {
+            const feedbackArea = document.getElementById('irohFeedbackArea');
+            if (!feedbackArea || !currentQuiz || currentQuiz.length === 0) return;
+            
+            feedbackArea.innerHTML = '<div class="card" style="padding: 20px; text-align: center;"><p style="color: var(--text-muted);">Iroh is analyzing your answers...</p></div>';
+            
+            const wrongQuestions = currentQuiz.filter((q, idx) => {
+                const userAnswer = quizUserAnswers[idx];
+                if (q.type === 'short_answer') {
+                    return !(userAnswer && q.answer && (userAnswer.toLowerCase().includes(q.answer.toLowerCase()) || q.answer.toLowerCase().includes(userAnswer.toLowerCase())));
+                }
+                return userAnswer !== q.correct;
+            });
+            
+            if (wrongQuestions.length === 0) {
+                feedbackArea.innerHTML = '<div class="card" style="padding: 20px; text-align: center;"><p style="color: var(--success);">Perfect score! Iroh has no feedback - you nailed it.</p></div>';
+                return;
+            }
+            
+            const wrongSummary = wrongQuestions.map(q => `Q: ${q.question} | Correct: ${q.type === 'short_answer' ? q.answer : q.options[q.correct]}`).join('\n');
+            
+            try {
+                const r = await fetch('/api/gemini', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'llama-3.1-8b-instant',
+                        messages: [
+                            { role: 'system', content: 'You are Iroh, a wise and encouraging study advisor. The student just took a quiz and got some answers wrong. Give brief, encouraging, and specific feedback on what to study. Be warm like Uncle Iroh from Avatar. Keep it under 200 words. Use specific topics from the wrong answers.' },
+                            { role: 'user', content: `I got ${quizScore}/${currentQuiz.length} on my quiz. Here are the questions I got wrong:\n\n${wrongSummary}\n\nGive me feedback on what to focus on.` }
+                        ],
+                        temperature: 0.7
+                    })
+                });
+                
+                const data = await r.json();
+                if (data.error || !data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('Invalid response');
+                }
+                
+                const feedback = data.choices[0].message.content;
+                feedbackArea.innerHTML = `<div class="card" style="padding: 20px; border-left: 4px solid var(--accent);"><div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">🫖 Iroh says:</div><div style="font-size: 14px; line-height: 1.6;">${feedback}</div></div>`;
+                
+            } catch (e) {
+                feedbackArea.innerHTML = '<div class="card" style="padding: 20px; text-align: center;"><p style="color: var(--error);">Iroh is unavailable right now. Try again later.</p></div>';
+            }
         }
 
         function renderQuizQuestion(index) {
@@ -6544,9 +6673,14 @@ Return ONLY the JSON array.`;
         window.addEventListener('load', () => {
             const savedUser = localStorage.getItem('googleUser');
             if (savedUser) {
-                window.googleUser = JSON.parse(savedUser);
-                googleUser = window.googleUser;
-                updateGoogleUI();
+                try {
+                    window.googleUser = JSON.parse(savedUser);
+                    googleUser = window.googleUser;
+                    updateGoogleUI();
+                } catch (e) {
+                    console.error('Failed to parse saved user:', e);
+                    localStorage.removeItem('googleUser');
+                }
                 
                 // First-time setup if no username
                 if (!localStorage.getItem('start25_username')) {
