@@ -1567,7 +1567,7 @@
             <!-- Streak Calendar -->
             <h2 style="font-size: 18px; margin-bottom: 16px;">Streak Calendar</h2>
             <div class="card" style="margin-bottom: 24px;">
-                <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="profileStreakCalendar"></div>
+                <div id="profileStreakCalendar" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px;"></div>
             </div>
 
             <!-- Active Goals -->
@@ -4139,16 +4139,66 @@ Return ONLY the JSON array, no other text.`;
             const container = document.getElementById('profileStreakCalendar');
             if (!container) return;
             const sessions = safeParse('start25_sessions', []);
-            
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const startWeekday = firstDay.getDay(); // Sunday = 0
+            const today = now.toDateString();
+
+            const studyByDay = {};
+            sessions.forEach(s => {
+                const sessionDate = new Date(s.date);
+                if (
+                    sessionDate.getFullYear() === year &&
+                    sessionDate.getMonth() === month
+                ) {
+                    const dayNum = sessionDate.getDate();
+                    studyByDay[dayNum] = (studyByDay[dayNum] || 0) + (s.duration || 25);
+                }
+            });
+
+            const weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
             let html = '';
-            for (let i = 0; i < 30; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                const dateStr = d.toDateString();
-                const hasSession = sessions.some(s => new Date(s.date).toDateString() === dateStr);
-                
-                html += `<div style="width: 32px; height: 32px; border-radius: 8px; background: ${hasSession ? 'var(--accent)' : 'var(--surface-2)'}; border: 1px solid ${hasSession ? 'var(--accent)' : 'var(--border)'}; display: flex; align-items: center; justify-content: center; font-size: 11px; color: ${hasSession ? 'var(--bg)' : 'var(--text-muted)'}">${d.getDate()}</div>`;
+
+            weekdayLabels.forEach(label => {
+                html += `<div style="height: 20px; text-align: center; font-size: 11px; color: var(--text-muted); font-weight: 600;">${label}</div>`;
+            });
+
+            for (let i = 0; i < startWeekday; i++) {
+                html += `<div style="min-height: 64px; border-radius: 10px; background: transparent;"></div>`;
             }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cellDate = new Date(year, month, day);
+                const isToday = cellDate.toDateString() === today;
+                const minutes = studyByDay[day] || 0;
+                const hasSession = minutes > 0;
+                const durationLabel = minutes >= 60
+                    ? `${Math.floor(minutes / 60)}h${minutes % 60 ? `${minutes % 60}m` : ''}`
+                    : (minutes ? `${minutes}m` : '');
+
+                html += `<div style="
+                    min-height: 64px;
+                    border-radius: 10px;
+                    padding: 6px;
+                    border: 1px solid ${hasSession ? 'var(--accent)' : 'var(--border)'};
+                    background: ${hasSession ? 'color-mix(in srgb, var(--accent) 18%, var(--surface-2))' : 'var(--surface-2)'};
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    ${isToday ? 'box-shadow: inset 0 0 0 2px var(--accent);' : ''}
+                ">
+                    <div style="font-size: 11px; color: var(--text-muted); text-align: right;">${durationLabel}</div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 14px; font-weight: 600; color: var(--text);">${day}</span>
+                        <span style="width: 8px; height: 8px; border-radius: 999px; background: ${hasSession ? 'var(--accent)' : 'transparent'};"></span>
+                    </div>
+                </div>`;
+            }
+
             container.innerHTML = html;
         }
 
@@ -4242,20 +4292,8 @@ Return ONLY the JSON array, no other text.`;
             if (streakEl) streakEl.innerHTML = `${streak.count} <span style="filter: ${streak.count > 0 ? 'none' : 'grayscale(100%)'};">🔥</span>`;
             if (sessionsEl) sessionsEl.textContent = sessions.length;
             
-            // Streak calendar (14 days for profile page)
-            const calendarEl = document.getElementById('profileStreakCalendar');
-            if (calendarEl) {
-                let html = '';
-                for (let i = 0; i < 14; i++) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    const dateStr = d.toDateString();
-                    const hasSession = sessions.some(s => new Date(s.date).toDateString() === dateStr);
-                    
-                    html += `<div style="width: 36px; height: 36px; border-radius: 8px; background: ${hasSession ? 'var(--accent)' : 'var(--surface-2)'}; border: 1px solid ${hasSession ? 'var(--accent)' : 'var(--border)'}; display: flex; align-items: center; justify-content: center; font-size: 12px; color: ${hasSession ? 'var(--bg)' : 'var(--text-muted)'}">${d.getDate()}</div>`;
-                }
-                calendarEl.innerHTML = html;
-            }
+            // Streak calendar (month view)
+            renderStreakCalendar();
             
             // Active goals (subjects)
             const goalsEl = document.getElementById('profileGoals');
