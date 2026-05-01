@@ -1892,6 +1892,7 @@
         let studyMode = false, currentCardIndex = 0, editingSubjectIndex = 0;
         let currentPage = 'home';
         let currentSubject = null;
+        let modalZIndexCounter = 2000; // Counter for stacking modals on top of each other
         let focusDuration = 25;
         let focusTasks = [];
         let currentFocusSession = null;
@@ -5557,7 +5558,7 @@ Return ONLY the JSON array.`;
             html += '</div>';
             
             const modal = document.createElement('div');
-            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;';
+            modal.style.cssText = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: ${++modalZIndexCounter}; display: flex; align-items: center; justify-content: center;`;
             modal.innerHTML = '<div style="background: var(--surface); border-radius: 16px; padding: 24px; max-width: 320px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">' +
                 '<h3 style="margin-bottom: 16px; text-align: center;">Accent Color</h3>' +
                 html +
@@ -5717,7 +5718,7 @@ Return ONLY the JSON array.`;
         function showFirstTimeSetup() {
             const modal = document.createElement('div');
             modal.id = 'firstTimeSetupModal';
-            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;';
+            modal.style.cssText = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: ${++modalZIndexCounter}; display: flex; align-items: center; justify-content: center;`;
             
             const user = window.googleUser || {};
             const defaultPic = user.picture || '';
@@ -5879,7 +5880,7 @@ Return ONLY the JSON array.`;
         function showConfirm(title, message, onConfirm) {
             // Create custom confirm modal
             const modal = document.createElement('div');
-            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;';
+            modal.style.cssText = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: ${++modalZIndexCounter}; display: flex; align-items: center; justify-content: center;`;
             modal.innerHTML = '<div style="background: var(--surface); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">' +
                 '<h3 style="margin-bottom: 8px; color: #dc2626;">' + title + '</h3>' +
                 '<p style="color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">' + message + '</p>' +
@@ -5987,10 +5988,10 @@ Return ONLY the JSON array.`;
 
             html += '</div>';
 
-            // Use a simple modal approach
+            // Use a simple modal approach with incrementing z-index
             const modal = document.createElement('div');
             modal.id = 'titleSelectorModal';
-            modal.className = 'modal-overlay active';
+            modal.style.cssText = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: ${++modalZIndexCounter}; display: flex; align-items: center; justify-content: center; padding: 24px;`;
             modal.innerHTML = `
                 <div class="modal" style="max-width: 400px;">
                     <h2 style="margin-bottom: 8px;">Select Title</h2>
