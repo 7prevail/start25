@@ -2789,17 +2789,12 @@
                 category = sanitizeInput(categorySelect.value, 50);
             }
 
-            if (!category) {
-                showAlert('Category required', 'Please select or create a category');
-                return;
-            }
-
             const name = subjectName;
             
             const youtubeLink = sanitizeInput(document.getElementById('modalYoutubeLink').value, 500);
             const pastedText = sanitizeInput(document.getElementById('modalPastedText').value, 50000);
             
-            const tags = [category];
+            const tags = category ? [category] : [];
             
             const subject = {
                 name: name,
