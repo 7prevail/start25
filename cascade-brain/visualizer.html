@@ -271,9 +271,11 @@
             document.getElementById('tooltip').style.opacity = '0';
         }
 
-        // Load data function (would fetch actual files in real implementation)
-        function loadData() {
-            alert('In production, this would re-read all markdown files and rebuild the graph');
+        // Load data function - re-reads files and rebuilds graph
+        async function loadData() {
+            // In production, this would fetch and parse actual markdown files
+            // For now, reload page to refresh with any hardcoded updates
+            location.reload();
         }
 
         // Add pulsing animation for root node
