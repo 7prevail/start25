@@ -1448,12 +1448,12 @@
                     </div>
                     <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
                 </div>
-                <div class="setting-item" id="settingsChangePasswordItem" style="display: none;" onclick="changePassword()">
+                <div class="setting-item" id="settingsChangePasswordItem" onclick="changePassword()">
                     <div class="setting-left">
                         <div class="setting-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V8a5 5 0 0 1 10 0v3"/><circle cx="12" cy="16" r="1"/></svg></div>
                         <div>
                             <h4 style="font-size: 15px; margin-bottom: 4px;">Change Password</h4>
-                            <p style="font-size: 13px; color: var(--text-muted);">Manage your Google account password</p>
+                            <p style="font-size: 13px; color: var(--text-muted);">Change your start25 account password</p>
                         </div>
                     </div>
                     <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
@@ -1543,6 +1543,7 @@
                     </div>
                     <div style="flex: 1;">
                         <h1 id="profilePageDisplayName" style="font-size: 24px; margin-bottom: 4px;">DisplayName</h1>
+                        <p id="profilePageTitle" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); padding: 4px 10px; border-radius: 999px; margin-bottom: 8px;">Rookie Scholar</p>
                         <p id="profilePageDisplay" style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">@username Level 1</p>
                         <div style="width: 200px; height: 8px; background: var(--surface-2); border-radius: 100px; overflow: hidden;">
                             <div id="profilePageXpBar" style="height: 100%; background: var(--success); width: 0%; transition: width 0.3s;"></div>
@@ -4234,6 +4235,8 @@ Return ONLY the JSON array, no other text.`;
             const profilePic = (googleUserData && googleUserData.picture) || localStorage.getItem('start25_profilePic');
             const userEmail = (googleUserData && googleUserData.email) || '';
             const level = safeParse('start25_level', {level: 1, xp: 0, maxXp: 100});
+            const currentXP = getXP();
+            const currentTitle = getTitleForXP(currentXP);
             
             // Update user header
             const avatarEl = document.getElementById('profilePageAvatar');
@@ -4264,8 +4267,10 @@ Return ONLY the JSON array, no other text.`;
             const displayNameEl = document.getElementById('profilePageDisplayName');
             const displayName = localStorage.getItem('start25_displayName') || username;
             if (displayNameEl) displayNameEl.textContent = displayName;
+            const titleEl = document.getElementById('profilePageTitle');
+            if (titleEl) titleEl.textContent = currentTitle;
             const displayEl = document.getElementById('profilePageDisplay');
-            if (displayEl) displayEl.textContent = `@${username} Level ${level.level}`;
+            if (displayEl) displayEl.textContent = `@${username} • ${currentTitle} • Level ${getLevel()}`;
             if (xpBarEl) xpBarEl.style.width = `${(level.xp / level.maxXp) * 100}%`;
             if (xpEl) xpEl.textContent = `${level.xp} / ${level.maxXp} XP`;
             
@@ -5897,6 +5902,19 @@ Return ONLY the JSON array.`;
         }
 
         // XP/Level System
+        function getTitleForXP(xp = getXP()) {
+            if (xp >= 12000) return 'Ascendant Sage';
+            if (xp >= 8000) return 'Grandmaster';
+            if (xp >= 5000) return 'Elite Scholar';
+            if (xp >= 3000) return 'Master Learner';
+            if (xp >= 1800) return 'Expert Student';
+            if (xp >= 1000) return 'Advanced Scholar';
+            if (xp >= 500) return 'Focused Learner';
+            if (xp >= 200) return 'Steady Student';
+            if (xp >= 80) return 'Rising Scholar';
+            return 'Rookie Scholar';
+        }
+
         function getXP() {
             return parseInt(localStorage.getItem('start25_xp') || '0');
         }
@@ -6146,6 +6164,7 @@ Return ONLY the JSON array.`;
             leaderboardRef.set({
                 name: displayName,
                 username: username,
+                title: getTitleForXP(getXP()),
                 // Do NOT store raw email in public leaderboard node
                 picture: customPic || user.picture || '',
                 xp: getXP(),
@@ -6210,6 +6229,7 @@ Return ONLY the JSON array.`;
                     const safeLevel = parseInt(user.level) || 1;
                     const safeSubjects = parseInt(user.subjects) || 0;
                     const safeXP = parseInt(user.xp) || 0;
+                    const safeTitle = escapeHtml(String(user.title || getTitleForXP(safeXP)));
                     const userPic = user.picture ? `<img src="${escapeHtml(user.picture)}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 12px;" onerror="this.style.display='none'">` : 
                         `<div style="width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2); display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px;">👤</div>`;
                     const usernameDisplay = safeUsername ? `<span style="color: var(--text-muted); font-size: 12px;"> @${safeUsername}</span>` : '';
@@ -6219,7 +6239,7 @@ Return ONLY the JSON array.`;
                         userPic +
                         '<div style="flex: 1;">' +
                             '<div style="font-weight: 600;">' + safeName + (isCurrentUser ? ' (You)' : '') + usernameDisplay + '</div>' +
-                            '<div style="font-size: 12px; color: var(--text-muted);">Level ' + safeLevel + ' • ' + safeSubjects + ' subjects</div>' +
+                            '<div style="font-size: 12px; color: var(--text-muted);">' + safeTitle + ' • Level ' + safeLevel + ' • ' + safeSubjects + ' subjects</div>' +
                         '</div>' +
                         '<div style="text-align: right;">' +
                             '<div style="font-weight: 700; font-size: 18px;">' + safeXP + ' XP</div>' +
@@ -6635,14 +6655,20 @@ Return ONLY the JSON array.`;
             googleUser = null;
             localStorage.removeItem('googleUser');
             localStorage.removeItem('start25_profilePic');
+            subjects = [];
+            flashcards = [];
+            showPage('home');
             updateGoogleUI();
             updateSettingsProfilePic();
             renderProfilePage();
+            renderFlashcards();
+            updateLeaderboard();
             
             // Also revoke Google session if available
             if (typeof google !== 'undefined' && google.accounts) {
                 google.accounts.id.disableAutoSelect();
             }
+            showAlert('Signed out', 'You have been signed out and local account data has been cleared.');
         }
 
         function changePassword() {
@@ -6659,7 +6685,6 @@ Return ONLY the JSON array.`;
             const userAvatar = document.getElementById('userAvatar');
             const settingsSignInItem = document.getElementById('settingsSignInItem');
             const settingsSignOutItem = document.getElementById('settingsSignOutItem');
-            const settingsChangePasswordItem = document.getElementById('settingsChangePasswordItem');
             const profileSettings = document.getElementById('profileSettings');
             const profileSignInPrompt = document.getElementById('profileSignInPrompt');
             const profileQuickChangePicture = document.getElementById('profileQuickChangePicture');
@@ -6673,7 +6698,6 @@ Return ONLY the JSON array.`;
                 if (signInBtn) signInBtn.style.display = 'none';
                 if (settingsSignInItem) settingsSignInItem.style.display = 'none';
                 if (settingsSignOutItem) settingsSignOutItem.style.display = 'flex';
-                if (settingsChangePasswordItem) settingsChangePasswordItem.style.display = 'flex';
                 if (profileSettings) profileSettings.style.display = 'block';
                 if (profileSignInPrompt) profileSignInPrompt.style.display = 'none';
                 if (profileQuickChangePicture) profileQuickChangePicture.style.display = 'flex';
@@ -6692,7 +6716,6 @@ Return ONLY the JSON array.`;
                 if (signInBtn) signInBtn.style.display = 'flex';
                 if (settingsSignInItem) settingsSignInItem.style.display = 'flex';
                 if (settingsSignOutItem) settingsSignOutItem.style.display = 'none';
-                if (settingsChangePasswordItem) settingsChangePasswordItem.style.display = 'none';
                 if (profileSettings) profileSettings.style.display = 'none';
                 if (profileSignInPrompt) profileSignInPrompt.style.display = 'block';
                 if (profileQuickChangePicture) profileQuickChangePicture.style.display = 'none';
