@@ -1131,7 +1131,6 @@
                         <div style="width: 60px; height: 6px; background: var(--surface-2); border-radius: 100px; overflow: hidden;">
                             <div id="xpBar" style="height: 100%; background: var(--success); width: 0%; transition: width 0.3s;"></div>
                         </div>
-                        <button id="signOutBtn" onclick="signOut()" style="display: none; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">Sign out</button>
                     </button>
                     <div id="googleSignInBtn" style="display: flex; align-items: center; height: 36px;">
                         <div id="g_id_signin_container" style="opacity: 0; transition: opacity 0.3s;"></div>
@@ -6636,7 +6635,6 @@ Return ONLY the JSON array.`;
         function updateGoogleUI() {
             const signInBtn = document.getElementById('googleSignInBtn');
             const userAvatar = document.getElementById('userAvatar');
-            const signOutBtn = document.getElementById('signOutBtn');
             const settingsSignInItem = document.getElementById('settingsSignInItem');
             const settingsSignOutItem = document.getElementById('settingsSignOutItem');
             const profileSettings = document.getElementById('profileSettings');
@@ -6650,7 +6648,6 @@ Return ONLY the JSON array.`;
 
             if (currentUser) {
                 if (signInBtn) signInBtn.style.display = 'none';
-                if (signOutBtn) signOutBtn.style.display = 'block';
                 if (settingsSignInItem) settingsSignInItem.style.display = 'none';
                 if (settingsSignOutItem) settingsSignOutItem.style.display = 'flex';
                 if (profileSettings) profileSettings.style.display = 'block';
@@ -6669,7 +6666,6 @@ Return ONLY the JSON array.`;
                 }
             } else {
                 if (signInBtn) signInBtn.style.display = 'flex';
-                if (signOutBtn) signOutBtn.style.display = 'none';
                 if (settingsSignInItem) settingsSignInItem.style.display = 'flex';
                 if (settingsSignOutItem) settingsSignOutItem.style.display = 'none';
                 if (profileSettings) profileSettings.style.display = 'none';
