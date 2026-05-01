@@ -1448,6 +1448,16 @@
                     </div>
                     <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
                 </div>
+                <div class="setting-item" id="settingsChangePasswordItem" style="display: none;" onclick="changePassword()">
+                    <div class="setting-left">
+                        <div class="setting-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V8a5 5 0 0 1 10 0v3"/><circle cx="12" cy="16" r="1"/></svg></div>
+                        <div>
+                            <h4 style="font-size: 15px; margin-bottom: 4px;">Change Password</h4>
+                            <p style="font-size: 13px; color: var(--text-muted);">Manage your Google account password</p>
+                        </div>
+                    </div>
+                    <span style="color: var(--text-muted); display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </div>
             </div>
             
             <h3 style="margin-top: 32px; margin-bottom: 16px; font-size: 14px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Profile</h3>
@@ -1843,11 +1853,11 @@
             </span>
             AI
         </button>
-        <button class="nav-item" onclick="showPage('profile')" data-page="profile" style="margin-top: auto;">
+        <button class="nav-item" onclick="showPage('settings')" data-page="settings" style="margin-top: auto;">
             <span class="nav-icon">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </span>
-            Menu
+            Settings
         </button>
     </div>
 
@@ -6624,7 +6634,10 @@ Return ONLY the JSON array.`;
             window.googleUser = null;
             googleUser = null;
             localStorage.removeItem('googleUser');
+            localStorage.removeItem('start25_profilePic');
             updateGoogleUI();
+            updateSettingsProfilePic();
+            renderProfilePage();
             
             // Also revoke Google session if available
             if (typeof google !== 'undefined' && google.accounts) {
@@ -6632,11 +6645,21 @@ Return ONLY the JSON array.`;
             }
         }
 
+        function changePassword() {
+            if (!window.googleUser) {
+                showAlert('Login required', 'Sign in with Google to manage account password.');
+                return;
+            }
+            window.open('https://myaccount.google.com/security', '_blank', 'noopener');
+            showAlert('Google Account', 'Password changes are managed securely in your Google Account.');
+        }
+
         function updateGoogleUI() {
             const signInBtn = document.getElementById('googleSignInBtn');
             const userAvatar = document.getElementById('userAvatar');
             const settingsSignInItem = document.getElementById('settingsSignInItem');
             const settingsSignOutItem = document.getElementById('settingsSignOutItem');
+            const settingsChangePasswordItem = document.getElementById('settingsChangePasswordItem');
             const profileSettings = document.getElementById('profileSettings');
             const profileSignInPrompt = document.getElementById('profileSignInPrompt');
             const profileQuickChangePicture = document.getElementById('profileQuickChangePicture');
@@ -6650,6 +6673,7 @@ Return ONLY the JSON array.`;
                 if (signInBtn) signInBtn.style.display = 'none';
                 if (settingsSignInItem) settingsSignInItem.style.display = 'none';
                 if (settingsSignOutItem) settingsSignOutItem.style.display = 'flex';
+                if (settingsChangePasswordItem) settingsChangePasswordItem.style.display = 'flex';
                 if (profileSettings) profileSettings.style.display = 'block';
                 if (profileSignInPrompt) profileSignInPrompt.style.display = 'none';
                 if (profileQuickChangePicture) profileQuickChangePicture.style.display = 'flex';
@@ -6668,6 +6692,7 @@ Return ONLY the JSON array.`;
                 if (signInBtn) signInBtn.style.display = 'flex';
                 if (settingsSignInItem) settingsSignInItem.style.display = 'flex';
                 if (settingsSignOutItem) settingsSignOutItem.style.display = 'none';
+                if (settingsChangePasswordItem) settingsChangePasswordItem.style.display = 'none';
                 if (profileSettings) profileSettings.style.display = 'none';
                 if (profileSignInPrompt) profileSignInPrompt.style.display = 'block';
                 if (profileQuickChangePicture) profileQuickChangePicture.style.display = 'none';
