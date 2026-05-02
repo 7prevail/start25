@@ -4263,15 +4263,21 @@ Return ONLY the JSON array, no other text.`;
         // Profile Page Rendering
         function renderProfilePage() {
             // Check if logged in (window.googleUser is null when signed out, undefined before init)
-            const isLoggedIn = (window.googleUser && window.googleUser.email) || localStorage.getItem('googleUser') !== null;
+            const hasGoogleUser = window.googleUser && window.googleUser.email;
+            const hasSavedUser = localStorage.getItem('googleUser') !== null;
+            const isLoggedIn = hasGoogleUser || hasSavedUser;
+            
+            console.log('renderProfilePage - isLoggedIn:', isLoggedIn, 'hasGoogleUser:', hasGoogleUser, 'hasSavedUser:', hasSavedUser);
             
             // If not logged in, show sign-in prompt prominently
             if (!isLoggedIn) {
+                console.log('Showing sign-in prompt for logged out user');
                 const profileContent = document.getElementById('profileContent');
                 if (profileContent) profileContent.style.display = 'none';
                 const signInPrompt = document.getElementById('profileSignInPrompt');
                 if (signInPrompt) {
                     signInPrompt.style.display = 'block';
+                    signInPrompt.style.visibility = 'visible';
                     signInPrompt.innerHTML = `
                         <div style="padding: 60px 40px; text-align: center;">
                             <div style="font-size: 64px; margin-bottom: 24px;">👤</div>
