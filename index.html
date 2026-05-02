@@ -4262,8 +4262,8 @@ Return ONLY the JSON array, no other text.`;
 
         // Profile Page Rendering
         function renderProfilePage() {
-            // Check if logged in
-            const isLoggedIn = window.googleUser !== null || localStorage.getItem('googleUser') !== null;
+            // Check if logged in (window.googleUser is null when signed out, undefined before init)
+            const isLoggedIn = (window.googleUser && window.googleUser.email) || localStorage.getItem('googleUser') !== null;
             
             // If not logged in, show sign-in prompt prominently
             if (!isLoggedIn) {
