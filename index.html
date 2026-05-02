@@ -1562,8 +1562,13 @@
                 </button>
             </div>
             
-            <!-- User Header Section -->
-            <div class="card" style="margin-bottom: 24px;">
+            <!-- Sign In Prompt (shown when logged out) -->
+            <div id="profileSignInPrompt" style="display: none;"></div>
+            
+            <!-- Profile Content (shown when logged in) -->
+            <div id="profileContent">
+                <!-- User Header Section -->
+                <div class="card" style="margin-bottom: 24px;">
                 <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
                     <div style="position: relative;">
                         <div id="profilePageAvatar" class="avatar" style="width: 80px; height: 80px; font-size: 32px;">U</div>
@@ -1681,6 +1686,7 @@
             <div id="profileQuickSignInPrompt" style="display: none; margin-top: 12px; color: var(--text-muted); font-size: 13px;">
                 Log in with Google to change your profile picture and username.
             </div>
+            </div><!-- /profileContent -->
         </div>
     </div>
 
@@ -4261,8 +4267,8 @@ Return ONLY the JSON array, no other text.`;
             
             // If not logged in, show sign-in prompt prominently
             if (!isLoggedIn) {
-                const profileCard = document.getElementById('profileCard');
-                if (profileCard) profileCard.style.display = 'none';
+                const profileContent = document.getElementById('profileContent');
+                if (profileContent) profileContent.style.display = 'none';
                 const signInPrompt = document.getElementById('profileSignInPrompt');
                 if (signInPrompt) {
                     signInPrompt.style.display = 'block';
@@ -4297,9 +4303,9 @@ Return ONLY the JSON array, no other text.`;
                 return; // Stop here - don't render profile content
             }
             
-            // Show profile card when logged in
-            const profileCard = document.getElementById('profileCard');
-            if (profileCard) profileCard.style.display = 'block';
+            // Show profile content when logged in
+            const profileContent = document.getElementById('profileContent');
+            if (profileContent) profileContent.style.display = 'block';
             const signInPrompt = document.getElementById('profileSignInPrompt');
             if (signInPrompt) signInPrompt.style.display = 'none';
             
