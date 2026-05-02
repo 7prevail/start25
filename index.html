@@ -52,6 +52,7 @@
             }
             
             // Restore all user data from Firebase (subjects, flashcards, sessions, streak, profile)
+            // Then check if first-time setup is needed
             if (typeof window.restoreUserDataFromFirebase === 'function') {
                 window.restoreUserDataFromFirebase().then(() => {
                     window.updateGoogleUI();
@@ -61,19 +62,31 @@
                     if (typeof renderProfilePage === 'function') renderProfilePage();
                     if (typeof updateStats === 'function') updateStats();
                     window.updateLeaderboard();
-                });
-            }
-            
-            // First-time setup: prompt for username + profile pic if not set
-            if (!localStorage.getItem('start25_username')) {
-                const attemptSetup = function(retries) {
-                    if (typeof window.showFirstTimeSetup === 'function') {
-                        window.showFirstTimeSetup();
-                    } else if (retries > 0) {
-                        setTimeout(function() { attemptSetup(retries - 1); }, 300);
+                    
+                    // First-time setup: prompt for username + profile pic if not set (AFTER restore)
+                    if (!localStorage.getItem('start25_username')) {
+                        const attemptSetup = function(retries) {
+                            if (typeof window.showFirstTimeSetup === 'function') {
+                                window.showFirstTimeSetup();
+                            } else if (retries > 0) {
+                                setTimeout(function() { attemptSetup(retries - 1); }, 300);
+                            }
+                        };
+                        setTimeout(function() { attemptSetup(20); }, 300);
                     }
-                };
-                setTimeout(function() { attemptSetup(20); }, 300);
+                });
+            } else {
+                // Fallback if restore function not ready: check immediately
+                if (!localStorage.getItem('start25_username')) {
+                    const attemptSetup = function(retries) {
+                        if (typeof window.showFirstTimeSetup === 'function') {
+                            window.showFirstTimeSetup();
+                        } else if (retries > 0) {
+                            setTimeout(function() { attemptSetup(retries - 1); }, 300);
+                        }
+                    };
+                    setTimeout(function() { attemptSetup(20); }, 300);
+                }
             }
             
             console.log('Google Sign-In successful:', userData);
@@ -7114,6 +7127,7 @@ Return ONLY the JSON array.`;
                     updateGoogleUI();
 
                     // Restore full data from Firebase (covers page refresh / new device)
+                    // Then check if first-time setup is needed
                     if (typeof window.restoreUserDataFromFirebase === 'function') {
                         window.restoreUserDataFromFirebase().then(() => {
                             updateGoogleUI();
@@ -7122,20 +7136,29 @@ Return ONLY the JSON array.`;
                             if (typeof renderFlashcards === 'function') renderFlashcards();
                             if (typeof renderProfilePage === 'function') renderProfilePage();
                             if (typeof updateStats === 'function') updateStats();
+                            
+                            // First-time setup if no username (AFTER restore)
+                            if (!localStorage.getItem('start25_username')) {
+                                setTimeout(() => {
+                                    if (typeof window.showFirstTimeSetup === 'function') {
+                                        window.showFirstTimeSetup();
+                                    }
+                                }, 500);
+                            }
                         });
+                    } else {
+                        // Fallback: check immediately if restore not available
+                        if (!localStorage.getItem('start25_username')) {
+                            setTimeout(() => {
+                                if (typeof window.showFirstTimeSetup === 'function') {
+                                    window.showFirstTimeSetup();
+                                }
+                            }, 500);
+                        }
                     }
                 } catch (e) {
                     console.error('Failed to parse saved user:', e);
                     localStorage.removeItem('googleUser');
-                }
-                
-                // First-time setup if no username
-                if (!localStorage.getItem('start25_username')) {
-                    setTimeout(() => {
-                        if (typeof window.showFirstTimeSetup === 'function') {
-                            window.showFirstTimeSetup();
-                        }
-                    }, 500);
                 }
             }
         });
