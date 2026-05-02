@@ -7495,9 +7495,10 @@ Return ONLY the JSON array.`;
                 const today = new Date().toDateString();
                 const streak = {count: parseInt(count) || 0, lastDate: today};
                 localStorage.setItem('start25_streak', JSON.stringify(streak));
+                syncUserDataToFirebase();
                 updateStats();
                 renderProfilePage();
-                console.log(`Streak set to: ${streak.count}`);
+                console.log(`Streak set to: ${streak.count} (synced to Firebase)`);
             },
             
             // List all commands
