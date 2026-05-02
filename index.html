@@ -6200,7 +6200,8 @@ Return ONLY the JSON array.`;
                     console.log('Available commands:');
                     console.log('  addXP(amount) - Add XP');
                     console.log('  setXP(amount) - Set total XP');
-                    console.log('  resetXP() - Reset to 0');
+                    console.log('  resetXP() - Reset your XP to 0');
+                    console.log('  resetAllUsersXP() - Reset ALL users XP to 0 (Firebase)');
                     console.log('  triggerConfetti() - Trigger confetti anytime');
                     console.log('  levelUp() - Instantly level up');
                     return true;
@@ -6232,6 +6233,39 @@ Return ONLY the JSON array.`;
             localStorage.setItem('start25_xp', 0);
             updateLevelDisplay();
             console.log('✅ XP reset to 0');
+        }
+        
+        async function resetAllUsersXP() {
+            if (!isAdmin) {
+                console.log('❌ Need admin access first: grantAdmin("password")');
+                return;
+            }
+            if (!db) {
+                console.log('❌ Firebase not connected');
+                return;
+            }
+            
+            try {
+                const snapshot = await db.ref('leaderboard').once('value');
+                const users = snapshot.val();
+                if (!users) {
+                    console.log('No users in leaderboard');
+                    return;
+                }
+                
+                const updates = {};
+                Object.keys(users).forEach(userId => {
+                    updates[`leaderboard/${userId}/xp`] = 0;
+                    updates[`leaderboard/${userId}/level`] = 1;
+                    updates[`leaderboard/${userId}/title`] = 'Rookie Scholar';
+                    updates[`leaderboard/${userId}/lastUpdated`] = Date.now();
+                });
+                
+                await db.ref().update(updates);
+                console.log('✅ Reset', Object.keys(users).length, 'users to XP=0, Level=1');
+            } catch (e) {
+                console.error('Failed to reset:', e);
+            }
         }
         
         function levelUp() {
