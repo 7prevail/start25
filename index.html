@@ -4274,14 +4274,26 @@ Return ONLY the JSON array, no other text.`;
                 console.log('Showing sign-in prompt for logged out user');
                 const profileContent = document.getElementById('profileContent');
                 if (profileContent) profileContent.style.display = 'none';
-                const signInPrompt = document.getElementById('profileSignInPrompt');
+                
+                // Find or create sign-in prompt container
+                let signInPrompt = document.getElementById('profileSignInPrompt');
+                if (!signInPrompt) {
+                    // Fallback: create the element if it doesn't exist
+                    const pageProfile = document.getElementById('page-profile');
+                    const container = pageProfile ? pageProfile.querySelector('.container') : null;
+                    if (container) {
+                        signInPrompt = document.createElement('div');
+                        signInPrompt.id = 'profileSignInPrompt';
+                        container.insertBefore(signInPrompt, container.firstChild);
+                    }
+                }
+                
                 if (signInPrompt) {
                     signInPrompt.style.display = 'block';
-                    signInPrompt.style.visibility = 'visible';
                     signInPrompt.innerHTML = `
-                        <div style="padding: 60px 40px; text-align: center;">
+                        <div class="card" style="margin-bottom: 24px; padding: 60px 40px; text-align: center;">
                             <div style="font-size: 64px; margin-bottom: 24px;">👤</div>
-                            <h2 style="margin-bottom: 12px;">Sign in to view your profile</h2>
+                            <h2 style="margin-bottom: 12px; font-size: 24px;">Sign in to view your profile</h2>
                             <p style="color: var(--text-muted); margin-bottom: 32px; max-width: 400px; margin-left: auto; margin-right: auto;">
                                 Sign in with Google to track your progress, earn XP, and compete on the leaderboard.
                             </p>
