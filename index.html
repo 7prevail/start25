@@ -259,8 +259,53 @@
         .page {
             display: none;
             min-height: 100vh;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
-        .page.active { display: block; }
+        .page.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .page.page-entering {
+            display: block;
+            opacity: 0;
+            transform: translateY(12px);
+        }
+        .page.page-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Title glow effects */
+        @keyframes titleGlow {
+            0%, 100% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.7); }
+        }
+        @keyframes titleSparkle {
+            0%, 100% { text-shadow: 0 0 4px rgba(255, 215, 0, 0.5); }
+            50% { text-shadow: 0 0 12px rgba(255, 215, 0, 0.9), 0 0 20px rgba(255, 215, 0, 0.4); }
+        }
+        @keyframes fireFlicker {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            25% { transform: scale(1.05); filter: brightness(1.2); }
+            50% { transform: scale(0.98); filter: brightness(0.95); }
+            75% { transform: scale(1.03); filter: brightness(1.1); }
+        }
+        .title-owner {
+            animation: titleGlow 2s ease-in-out infinite, titleSparkle 2s ease-in-out infinite;
+        }
+        .title-grandmaster {
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+        .title-ascendant {
+            animation: titleGlow 2.5s ease-in-out infinite, titleSparkle 3s ease-in-out infinite;
+        }
+        .streak-fire {
+            animation: fireFlicker 1.5s ease-in-out infinite;
+            display: inline-block;
+        }
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -2077,9 +2122,34 @@
         // Navigation
         function showPage(page) {
             currentPage = page;
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            // Animate page transition
+            const activePage = document.querySelector('.page.active');
             const pageEl = document.getElementById('page-' + page);
-            if (pageEl) pageEl.classList.add('active');
+            
+            if (activePage && activePage !== pageEl) {
+                activePage.style.opacity = '0';
+                activePage.style.transform = 'translateY(-8px)';
+                setTimeout(() => {
+                    document.querySelectorAll('.page').forEach(p => {
+                        p.classList.remove('active');
+                        p.style.opacity = ''; p.style.transform = '';
+                    });
+                    if (pageEl) {
+                        pageEl.classList.add('active');
+                        pageEl.style.opacity = '0';
+                        pageEl.style.transform = 'translateY(12px)';
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                pageEl.style.opacity = '1';
+                                pageEl.style.transform = 'translateY(0)';
+                            });
+                        });
+                    }
+                }, 150);
+            } else if (pageEl) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                pageEl.classList.add('active');
+            }
             
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.querySelectorAll('.nav-item[data-page="' + page + '"]').forEach(n => n.classList.add('active'));
@@ -4089,11 +4159,16 @@ Return ONLY the JSON array, no other text.`;
             
             let icon = '🔥';
             let style = '';
+            let extra = '';
             if (streak.count === 0) {
                 style = 'filter: grayscale(100%);';
             }
+            if (streak.count >= 3) {
+                extra = ' <span style="font-size:0.75em; color: #f59e0b; font-weight: 600;">1.2x</span>';
+            }
             if (el) {
-                el.innerHTML = '<span style="' + style + ' vertical-align: middle;">' + streak.count + icon + '</span>';
+                const fireClass = streak.count >= 3 ? 'streak-fire' : '';
+                el.innerHTML = '<span class="' + fireClass + '" style="' + style + ' vertical-align: middle;">' + streak.count + icon + '</span>' + extra;
             }
         }
 
@@ -4332,11 +4407,25 @@ Return ONLY the JSON array, no other text.`;
                 titleEl.innerHTML = titleContent;
                 titleEl.style.display = 'inline-flex';
                 // Apply gold styling for Owner
+                titleEl.className = '';
                 if (currentTitle === 'Owner') {
                     titleEl.style.background = 'linear-gradient(135deg, #ffd700 20%, #ffed4a 50%, #ffd700 80%)';
                     titleEl.style.color = '#1a1a1a';
                     titleEl.style.border = '1px solid #daa520';
                     titleEl.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.3)';
+                    titleEl.classList.add('title-owner');
+                } else if (currentTitle === 'Grandmaster') {
+                    titleEl.style.background = 'color-mix(in srgb, var(--accent) 14%, var(--surface-2))';
+                    titleEl.style.color = 'var(--accent)';
+                    titleEl.style.border = '1px solid color-mix(in srgb, var(--accent) 40%, var(--border))';
+                    titleEl.style.boxShadow = 'none';
+                    titleEl.classList.add('title-grandmaster');
+                } else if (currentTitle === 'Ascendant Sage') {
+                    titleEl.style.background = 'color-mix(in srgb, var(--accent) 14%, var(--surface-2))';
+                    titleEl.style.color = 'var(--accent)';
+                    titleEl.style.border = '1px solid color-mix(in srgb, var(--accent) 40%, var(--border))';
+                    titleEl.style.boxShadow = 'none';
+                    titleEl.classList.add('title-ascendant');
                 } else {
                     titleEl.style.background = 'color-mix(in srgb, var(--accent) 14%, var(--surface-2))';
                     titleEl.style.color = 'var(--accent)';
@@ -4380,7 +4469,7 @@ Return ONLY the JSON array, no other text.`;
             
             if (todayEl) todayEl.textContent = formatStudyTime(todayMinutes);
             if (weekEl) weekEl.textContent = formatStudyTime(weekMinutes);
-            if (streakEl) streakEl.innerHTML = `${streak.count} <span style="filter: ${streak.count > 0 ? 'none' : 'grayscale(100%)'};">🔥</span>`;
+            if (streakEl) streakEl.innerHTML = `${streak.count} <span class="${streak.count >= 3 ? 'streak-fire' : ''}" style="filter: ${streak.count > 0 ? 'none' : 'grayscale(100%)'};">🔥</span>${streak.count >= 3 ? '<span style="font-size:12px; color:#f59e0b; font-weight:600; margin-left:4px;">1.2x</span>' : ''}`;
             if (sessionsEl) sessionsEl.textContent = sessions.length;
             
             // Streak calendar (month view)
@@ -6110,9 +6199,16 @@ Return ONLY the JSON array.`;
         }
 
         function addXP(amount) {
+            // Streak multiplier: 1.2x if 3+ day streak
+            const streak = safeParse('start25_streak', {count: 0});
+            const multiplier = streak.count >= 3 ? 1.2 : 1;
+            const finalAmount = Math.round(amount * multiplier);
+            if (multiplier > 1) {
+                console.log(`Streak bonus! ${amount} XP x${multiplier} = ${finalAmount} XP`);
+            }
             const current = getXP();
             const oldLevel = getLevel();
-            const newXP = current + amount;
+            const newXP = current + finalAmount;
             localStorage.setItem('start25_xp', newXP);
             updateLevelDisplay();
             
