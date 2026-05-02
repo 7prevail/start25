@@ -6306,20 +6306,29 @@ Return ONLY the JSON array.`;
                 const data = snapshot.val();
                 
                 if (data) {
-                    // Sync username if exists and local doesn't have it
-                    if (data.username && !localStorage.getItem('start25_username')) {
+                    // Sync username if exists
+                    if (data.username) {
                         localStorage.setItem('start25_username', data.username);
                     }
-                    // Sync display name if exists and local doesn't have it
-                    if (data.name && !localStorage.getItem('start25_displayName')) {
+                    // Sync display name if exists
+                    if (data.name) {
                         localStorage.setItem('start25_displayName', data.name);
                     }
                     // Sync equipped title if exists
                     if (data.title) {
                         localStorage.setItem('start25_equipped_title', data.title);
                     }
-                    // Note: We don't sync profile pic from Firebase as it could be large base64
-                    // XP and level are calculated locally from activity
+                    // Sync profile pic if exists (base64 from Firebase)
+                    if (data.picture && data.picture.startsWith('data:')) {
+                        localStorage.setItem('start25_profilePic', data.picture);
+                    }
+                    // Sync XP and level from Firebase
+                    if (data.xp !== undefined) {
+                        localStorage.setItem('start25_xp', data.xp.toString());
+                    }
+                    if (data.level !== undefined) {
+                        localStorage.setItem('start25_level', data.level.toString());
+                    }
                     
                     console.log('✅ Synced profile from leaderboard');
                 }
