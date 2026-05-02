@@ -6607,7 +6607,9 @@ Return ONLY the JSON array.`;
                     const safeLevel = parseInt(user.level) || 1;
                     const safeSubjects = parseInt(user.subjects) || 0;
                     const safeXP = parseInt(user.xp) || 0;
-                    const safeTitle = escapeHtml(String(user.title || getTitleForXP(safeXP)));
+                    const titleName = String(user.title || getTitleForXP(safeXP));
+                    const titleData = ALL_TITLES.find(t => t.name === titleName);
+                    const safeTitle = titleData?.svg ? titleData.svg + ' ' + escapeHtml(titleName) : escapeHtml(titleName);
                     const userPic = user.picture ? `<img src="${escapeHtml(user.picture)}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 12px;" onerror="this.style.display='none'">` : 
                         `<div style="width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2); display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px;">👤</div>`;
                     const usernameDisplay = safeUsername ? `<span style="color: var(--text-muted); font-size: 12px;"> @${safeUsername}</span>` : '';
