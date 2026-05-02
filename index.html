@@ -6018,7 +6018,14 @@ Return ONLY the JSON array.`;
 
         function getUnlockedTitles() {
             const xp = getXP();
-            return ALL_TITLES.filter(t => xp >= t.xp);
+            const userEmail = (window.googleUser && window.googleUser.email) || '';
+            // Owner title only for admin
+            const isAdmin = userEmail === 'your.email@example.com';
+            
+            return ALL_TITLES.filter(t => {
+                if (t.name === 'Owner') return isAdmin;
+                return xp >= t.xp;
+            });
         }
 
         function equipTitle(titleName) {
