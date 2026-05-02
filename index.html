@@ -4328,7 +4328,7 @@ Return ONLY the JSON array, no other text.`;
             const titleEl = document.getElementById('profilePageTitle');
             if (titleEl) {
                 const titleData = ALL_TITLES.find(t => t.name === currentTitle);
-                const titleText = titleData?.icon ? `${titleData.icon} ${currentTitle}` : currentTitle;
+                const titleText = titleData?.symbol ? `${titleData.symbol} ${currentTitle}` : currentTitle;
                 titleEl.textContent = titleText;
                 titleEl.style.display = 'inline-flex';
                 // Apply gold styling for Owner
@@ -5990,7 +5990,7 @@ Return ONLY the JSON array.`;
 
         // XP/Level System
         const ALL_TITLES = [
-            { name: 'Owner', xp: 0, icon: '👑', gold: true, special: true },
+            { name: 'Owner', xp: 0, symbol: '♔', gold: true, special: true },
             { name: 'Rookie Scholar', xp: 0 },
             { name: 'Rising Scholar', xp: 80 },
             { name: 'Steady Student', xp: 200 },
@@ -6071,8 +6071,8 @@ Return ONLY the JSON array.`;
                     badge = '<span style="font-size: 11px; color: var(--text-muted);">Auto-equipped</span>';
                 }
 
-                const titleIcon = title.icon || '';
-                const titleDisplay = titleIcon ? `${titleIcon} ${title.name}` : title.name;
+                const titleSymbol = title.symbol || '';
+                const titleDisplay = titleSymbol ? `${titleSymbol} ${title.name}` : title.name;
                 
                 // Gold styling for Owner title
                 if (title.name === 'Owner' && isUnlocked) {
