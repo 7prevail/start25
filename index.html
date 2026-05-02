@@ -4262,79 +4262,28 @@ Return ONLY the JSON array, no other text.`;
 
         // Profile Page Rendering
         function renderProfilePage() {
-            // Check if logged in (window.googleUser is null when signed out, undefined before init)
-            const hasGoogleUser = window.googleUser && window.googleUser.email;
-            const hasSavedUser = localStorage.getItem('googleUser') !== null;
-            const isLoggedIn = hasGoogleUser || hasSavedUser;
+            const isLoggedIn = (window.googleUser && window.googleUser.email) || localStorage.getItem('googleUser');
+            const profileContent = document.getElementById('profileContent');
+            const signInPrompt = document.getElementById('profileSignInPrompt');
             
-            console.log('renderProfilePage - isLoggedIn:', isLoggedIn, 'hasGoogleUser:', hasGoogleUser, 'hasSavedUser:', hasSavedUser);
-            
-            // If not logged in, show sign-in prompt prominently
             if (!isLoggedIn) {
-                console.log('Showing sign-in prompt for logged out user');
-                const profileContent = document.getElementById('profileContent');
-                console.log('profileContent element:', profileContent);
-                if (profileContent) {
-                    profileContent.style.display = 'none';
-                    console.log('Hid profileContent');
+                // LOGGED OUT: Hide content, show sign-in prompt
+                if (profileContent) profileContent.style.display = 'none';
+                if (signInPrompt) {
+                    signInPrompt.style.display = 'block';
+                    signInPrompt.innerHTML = '<div class="card" style="margin-bottom: 24px; padding: 60px 40px; text-align: center;"><div style="font-size: 64px; margin-bottom: 24px;">👤</div><h2 style="margin-bottom: 12px; font-size: 24px;">Sign in to view your profile</h2><p style="color: var(--text-muted); margin-bottom: 32px;">Sign in with Google to track your progress, earn XP, and compete on the leaderboard.</p><div id="profileGoogleSignInBtn" style="display: flex; justify-content: center;"></div></div>';
+                    setTimeout(function() {
+                        var btn = document.getElementById('profileGoogleSignInBtn');
+                        if (btn && typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                            google.accounts.id.renderButton(btn, {type: 'standard', shape: 'pill', theme: document.body.getAttribute('data-theme') === 'dark' ? 'filled_black' : 'outline', text: 'signin_with', size: 'large'});
+                        }
+                    }, 100);
                 }
-                
-                // Find or create sign-in prompt container
-                let signInPrompt = document.getElementById('profileSignInPrompt');
-                console.log('signInPrompt element (existing):', signInPrompt);
-                if (!signInPrompt) {
-                    // Fallback: create the element if it doesn't exist
-                    const pageProfile = document.getElementById('page-profile');
-                    console.log('page-profile element:', pageProfile);
-                    const container = pageProfile ? pageProfile.querySelector('.container') : null;
-                    console.log('container element:', container);
-                    if (container) {
-                        signInPrompt = document.createElement('div');
-                        signInPrompt.id = 'profileSignInPrompt';
-                        container.insertBefore(signInPrompt, container.firstChild);
-                        console.log('Created signInPrompt element');
-                    }
-                }
-                
-                console.log('Final signInPrompt element:', signInPrompt);
-                const pageProfile2 = document.getElementById('page-profile');
-                const container2 = pageProfile2 ? pageProfile2.querySelector('.container') : null;
-                console.log('page-profile element:', pageProfile2);
-                console.log('page-profile display:', pageProfile2 ? getComputedStyle(pageProfile2).display : 'null');
-                console.log('container for sign-in:', container2);
-                
-                // Use signInPrompt element or fall back to inserting directly into container
-                let targetEl = signInPrompt;
-                if (!targetEl && container2) {
-                    targetEl = document.createElement('div');
-                    targetEl.id = 'profileSignInPrompt';
-                    container2.insertBefore(targetEl, container2.firstChild);
-                }
-                
-                if (targetEl) {
-                    targetEl.style.display = 'block';
-                    targetEl.style.visibility = 'visible';
-                    targetEl.style.opacity = '1';
-                    targetEl.style.width = '100%';
-                    targetEl.innerHTML = `
-                        <div class="card" style="margin-bottom: 24px; padding: 60px 40px; text-align: center;">
-                            <div style="font-size: 64px; margin-bottom: 24px;">👤</div>
-                            <h2 style="margin-bottom: 12px; font-size: 24px;">Sign in to view your profile</h2>
-                            <p style="color: var(--text-muted); margin-bottom: 32px; max-width: 400px; margin-left: auto; margin-right: auto;">
-                                Sign in with Google to track your progress, earn XP, and compete on the leaderboard.
-                            </p>
-                            <div id="profileGoogleSignInBtn" style="display: flex; justify-content: center;"></div>
-                        </div>
-                    `;
-                    console.log('Set targetEl innerHTML, content length:', targetEl.innerHTML.length);
-                }
-                return; // Stop here - don't render profile content
+                return;
             }
             
-            // Show profile content when logged in
-            const profileContent = document.getElementById('profileContent');
+            // LOGGED IN: Show content, hide sign-in prompt
             if (profileContent) profileContent.style.display = 'block';
-            const signInPrompt = document.getElementById('profileSignInPrompt');
             if (signInPrompt) signInPrompt.style.display = 'none';
             
             // Get Google user data if signed in
