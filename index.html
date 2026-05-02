@@ -4328,8 +4328,8 @@ Return ONLY the JSON array, no other text.`;
             const titleEl = document.getElementById('profilePageTitle');
             if (titleEl) {
                 const titleData = ALL_TITLES.find(t => t.name === currentTitle);
-                const titleText = titleData?.symbol ? `${titleData.symbol} ${currentTitle}` : currentTitle;
-                titleEl.textContent = titleText;
+                const titleContent = titleData?.svg ? `${titleData.svg} ${currentTitle}` : currentTitle;
+                titleEl.innerHTML = titleContent;
                 titleEl.style.display = 'inline-flex';
                 // Apply gold styling for Owner
                 if (currentTitle === 'Owner') {
@@ -5990,7 +5990,7 @@ Return ONLY the JSON array.`;
 
         // XP/Level System
         const ALL_TITLES = [
-            { name: 'Owner', xp: 0, symbol: '♔', gold: true, special: true },
+            { name: 'Owner', xp: 0, svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:middle;"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>', gold: true, special: true },
             { name: 'Rookie Scholar', xp: 0 },
             { name: 'Rising Scholar', xp: 80 },
             { name: 'Steady Student', xp: 200 },
@@ -6071,8 +6071,8 @@ Return ONLY the JSON array.`;
                     badge = '<span style="font-size: 11px; color: var(--text-muted);">Auto-equipped</span>';
                 }
 
-                const titleSymbol = title.symbol || '';
-                const titleDisplay = titleSymbol ? `${titleSymbol} ${title.name}` : title.name;
+                const titleSvg = title.svg || '';
+                const titleDisplay = titleSvg ? `${titleSvg} <span style="margin-left:6px;">${title.name}</span>` : title.name;
                 
                 // Gold styling for Owner title
                 if (title.name === 'Owner' && isUnlocked) {
