@@ -5788,6 +5788,7 @@ Return ONLY the JSON array.`;
                         picEl.style.backgroundImage = `url(${base64})`;
                         if (placeholder) placeholder.style.display = 'none';
                         updateAllProfilePills();
+                        updateLeaderboard();
                     };
                     reader.readAsDataURL(file);
                 };
