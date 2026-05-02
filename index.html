@@ -4299,6 +4299,8 @@ Return ONLY the JSON array, no other text.`;
                 console.log('Final signInPrompt element:', signInPrompt);
                 if (signInPrompt) {
                     signInPrompt.style.display = 'block';
+                    signInPrompt.style.visibility = 'visible';
+                    signInPrompt.style.opacity = '1';
                     signInPrompt.innerHTML = `
                         <div class="card" style="margin-bottom: 24px; padding: 60px 40px; text-align: center;">
                             <div style="font-size: 64px; margin-bottom: 24px;">👤</div>
@@ -4309,6 +4311,7 @@ Return ONLY the JSON array, no other text.`;
                             <div id="profileGoogleSignInBtn" style="display: flex; justify-content: center;"></div>
                         </div>
                     `;
+                    console.log('Set signInPrompt innerHTML, content:', signInPrompt.innerHTML.substring(0, 100));
                     // Render Google button in the prompt
                     setTimeout(() => {
                         if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
