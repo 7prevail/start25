@@ -5258,9 +5258,14 @@ Return ONLY the JSON array.`;
                 if (match) {
                     let cards;
                     try {
-                        cards = JSON.parse(match[0]);
+                        let jsonStr = match[0];
+                        // Fix common AI JSON issues
+                        jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1'); // Remove trailing commas
+                        jsonStr = jsonStr.replace(/\n/g, '\\n'); // Escape newlines in strings
+                        cards = JSON.parse(jsonStr);
                     } catch (parseError) {
                         console.error('Failed to parse flashcards:', parseError);
+                        console.log('Raw response:', response);
                         return [];
                     }
                     return cards.map((c, i) => ({
