@@ -4262,16 +4262,19 @@ Return ONLY the JSON array, no other text.`;
                     avatarEl.textContent = (username[0] || 'U').toUpperCase();
                 }
             }
-            if (badgeEl) badgeEl.textContent = level.level;
+            const userLevel = getLevel();
+            if (badgeEl) badgeEl.textContent = userLevel;
             const displayNameEl = document.getElementById('profilePageDisplayName');
             const displayName = localStorage.getItem('start25_displayName') || username;
             if (displayNameEl) displayNameEl.textContent = displayName;
             const titleEl = document.getElementById('profilePageTitle');
             if (titleEl) titleEl.textContent = currentTitle;
             const displayEl = document.getElementById('profilePageDisplay');
-            if (displayEl) displayEl.textContent = `@${username} • ${currentTitle} • Level ${getLevel()}`;
-            if (xpBarEl) xpBarEl.style.width = `${(level.xp / level.maxXp) * 100}%`;
-            if (xpEl) xpEl.textContent = `${level.xp} / ${level.maxXp} XP`;
+            if (displayEl) displayEl.textContent = `@${username} • Level ${userLevel}`;
+            const xpForNext = getXPForNextLevel();
+            const xpInCurrentLevel = getXPInCurrentLevel();
+            if (xpBarEl) xpBarEl.style.width = `${(xpInCurrentLevel / xpForNext) * 100}%`;
+            if (xpEl) xpEl.textContent = `${xpInCurrentLevel} / ${xpForNext} XP to next level`;
             
             // Stats
             const sessions = safeParse('start25_sessions', []);
