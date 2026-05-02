@@ -4314,7 +4314,14 @@ Return ONLY the JSON array, no other text.`;
             const displayName = localStorage.getItem('start25_displayName') || username;
             if (displayNameEl) displayNameEl.textContent = displayName;
             const titleEl = document.getElementById('profilePageTitle');
-            if (titleEl) titleEl.textContent = currentTitle;
+            if (titleEl) {
+                if (currentTitle) {
+                    titleEl.textContent = currentTitle;
+                    titleEl.style.display = 'inline-flex';
+                } else {
+                    titleEl.style.display = 'none';
+                }
+            }
             const displayEl = document.getElementById('profilePageDisplay');
             if (displayEl) displayEl.textContent = `@${username} • Level ${userLevel}`;
             const xpForNext = getXPForNextLevel();
