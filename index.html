@@ -51,10 +51,15 @@
                 }, 500);
             }
             
-            // Sync profile data from Firebase (for users who logged in on other devices)
-            if (typeof window.syncFromLeaderboard === 'function') {
-                window.syncFromLeaderboard().then(() => {
+            // Restore all user data from Firebase (subjects, flashcards, sessions, streak, profile)
+            if (typeof window.restoreUserDataFromFirebase === 'function') {
+                window.restoreUserDataFromFirebase().then(() => {
                     window.updateGoogleUI();
+                    window.updateAllProfilePills();
+                    if (typeof renderSubjects === 'function') renderSubjects();
+                    if (typeof renderFlashcards === 'function') renderFlashcards();
+                    if (typeof renderProfilePage === 'function') renderProfilePage();
+                    if (typeof updateStats === 'function') updateStats();
                     window.updateLeaderboard();
                 });
             }
@@ -2019,6 +2024,7 @@
         function saveSubjects() {
             try {
                 localStorage.setItem('start25_subjects', JSON.stringify(subjects));
+                scheduleSyncToFirebase();
             } catch (e) {
                 console.error('Failed to save subjects:', e);
                 if (e.name === 'QuotaExceededError') {
@@ -3802,6 +3808,7 @@ Return ONLY the JSON array, no other text.`;
             flashcards = flashcards.filter(f => f.subject !== subjectName);
             flashcards = flashcards.concat(cards);
             localStorage.setItem('start25_flashcards', JSON.stringify(flashcards));
+            scheduleSyncToFirebase();
             
             // Reset to show first card
             currentCardIndex = 0;
@@ -4673,6 +4680,8 @@ Return ONLY the JSON array, no other text.`;
             
             updateStats();
             showAlert('Complete!', 'Session finished. Great work!');
+            // Sync updated sessions, streak, and XP to Firebase immediately
+            syncUserDataToFirebase();
         }
 
         function saveFocusHistory(completed) {
@@ -5136,6 +5145,7 @@ Return ONLY the JSON array, no other text.`;
             
             flashcards = cards;
             localStorage.setItem('start25_flashcards', JSON.stringify(flashcards));
+            scheduleSyncToFirebase();
             
             // Reset to show first card
             currentCardIndex = 0;
@@ -6291,6 +6301,112 @@ Return ONLY the JSON array.`;
             console.log('✅ Leveled up!');
         }
 
+        // ── Full User Data Sync ────────────────────────────────────────────────────
+
+        // Strip oversized material content before sending to Firebase
+        // (keeps structure + text but caps each content field to avoid hitting limits)
+        function prepareSubjectsForSync(subjs) {
+            return (subjs || []).map(s => ({
+                ...s,
+                // Don't sync the generated study guide (can be huge, regenerated on demand)
+                generatedStudyGuide: undefined,
+                materials: (s.materials || []).map(m => ({
+                    ...m,
+                    // Cap extracted text at 12 000 chars per material (~12 KB)
+                    content: m.content ? m.content.substring(0, 12000) : undefined
+                }))
+            }));
+        }
+
+        // Save everything that matters to Firebase users/{userId}
+        async function syncUserDataToFirebase() {
+            if (!db || !window.googleUser) return;
+            const user = getUserInfo();
+            if (!user || !user.email) return;
+
+            try {
+                const userId = await hashEmail(user.email);
+                const sessions = safeParse('start25_sessions', []);
+                const streak   = safeParse('start25_streak',   { count: 0, lastDate: null });
+
+                const payload = {
+                    subjects:   prepareSubjectsForSync(subjects),
+                    flashcards: flashcards || [],
+                    sessions:   sessions.slice(-100),   // keep last 100
+                    streak:     streak,
+                    xp:         getXP(),
+                    level:      getLevel(),
+                    lastSynced: Date.now()
+                };
+
+                await db.ref('users/' + userId).set(payload);
+                console.log('✅ User data synced to Firebase');
+            } catch (e) {
+                console.error('❌ syncUserDataToFirebase failed:', e);
+            }
+        }
+        window.syncUserDataToFirebase = syncUserDataToFirebase;
+
+        // Restore everything from Firebase after sign-in
+        async function restoreUserDataFromFirebase() {
+            if (!db || !window.googleUser) return;
+            const user = getUserInfo();
+            if (!user || !user.email) return;
+
+            try {
+                const userId = await hashEmail(user.email);
+
+                // 1. Profile data (leaderboard node — username, pic, XP etc.)
+                const profileSnap = await db.ref('leaderboard/' + userId).once('value');
+                const profile = profileSnap.val();
+                if (profile) {
+                    if (profile.username) localStorage.setItem('start25_username',      profile.username);
+                    if (profile.name)     localStorage.setItem('start25_displayName',   profile.name);
+                    if (profile.title)    localStorage.setItem('start25_equipped_title',profile.title);
+                    if (profile.picture && profile.picture.startsWith('data:'))
+                        localStorage.setItem('start25_profilePic', profile.picture);
+                    if (profile.xp    !== undefined) localStorage.setItem('start25_xp',    String(profile.xp));
+                    if (profile.level !== undefined) localStorage.setItem('start25_level', String(profile.level));
+                }
+
+                // 2. Full study data (users node — subjects, flashcards, sessions, streak)
+                const dataSnap = await db.ref('users/' + userId).once('value');
+                const data = dataSnap.val();
+                if (data) {
+                    if (Array.isArray(data.subjects) && data.subjects.length > 0) {
+                        subjects = data.subjects;
+                        localStorage.setItem('start25_subjects', JSON.stringify(subjects));
+                    }
+                    if (Array.isArray(data.flashcards)) {
+                        flashcards = data.flashcards;
+                        localStorage.setItem('start25_flashcards', JSON.stringify(flashcards));
+                        scheduleSyncToFirebase();
+                    }
+                    if (data.sessions) localStorage.setItem('start25_sessions', JSON.stringify(data.sessions));
+                    if (data.streak)   localStorage.setItem('start25_streak',   JSON.stringify(data.streak));
+                    // Use whichever XP value is higher (offline work vs cloud)
+                    if (data.xp !== undefined) {
+                        const localXP = getXP();
+                        if (data.xp > localXP) localStorage.setItem('start25_xp', String(data.xp));
+                    }
+                }
+
+                console.log('✅ User data restored from Firebase');
+            } catch (e) {
+                console.error('❌ restoreUserDataFromFirebase failed:', e);
+            }
+        }
+        window.restoreUserDataFromFirebase = restoreUserDataFromFirebase;
+
+        // Debounced wrapper — safe to call on every keystroke / save event
+        let _syncDebounceTimer = null;
+        function scheduleSyncToFirebase() {
+            if (!window.googleUser || !db) return;
+            clearTimeout(_syncDebounceTimer);
+            _syncDebounceTimer = setTimeout(syncUserDataToFirebase, 2500);
+        }
+        window.scheduleSyncToFirebase = scheduleSyncToFirebase;
+
         // Leaderboard System
         
         // Pull profile data from Firebase to localStorage (for sync across devices)
@@ -6849,30 +6965,36 @@ Return ONLY the JSON array.`;
         }
         
         function signOut() {
-            window.googleUser = null;
-            googleUser = null;
-            localStorage.removeItem('googleUser');
-            localStorage.removeItem('start25_profilePic');
-            localStorage.removeItem('start25_displayName');
-            localStorage.removeItem('start25_username');
-            localStorage.removeItem('start25_equipped_title');
-            localStorage.removeItem('start25_subjects');
-            localStorage.removeItem('start25_flashcards');
-            localStorage.removeItem('start25_xp');
-            localStorage.removeItem('start25_level');
-            subjects = [];
-            flashcards = [];
-            showPage('home');
-            updateGoogleUI();
-            updateSettingsProfilePic();
-            renderProfilePage();
-            renderFlashcards();
-            
-            // Also revoke Google session if available
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.disableAutoSelect();
-            }
-            showAlert('Signed out', 'You have been signed out and local account data has been cleared.');
+            // Push latest data to Firebase BEFORE clearing localStorage,
+            // so it's there when the user signs back in.
+            syncUserDataToFirebase().finally(() => {
+                window.googleUser = null;
+                googleUser = null;
+                localStorage.removeItem('googleUser');
+                localStorage.removeItem('start25_profilePic');
+                localStorage.removeItem('start25_displayName');
+                localStorage.removeItem('start25_username');
+                localStorage.removeItem('start25_equipped_title');
+                localStorage.removeItem('start25_subjects');
+                localStorage.removeItem('start25_flashcards');
+                localStorage.removeItem('start25_xp');
+                localStorage.removeItem('start25_level');
+                localStorage.removeItem('start25_sessions');
+                localStorage.removeItem('start25_streak');
+                subjects = [];
+                flashcards = [];
+                showPage('home');
+                updateGoogleUI();
+                updateSettingsProfilePic();
+                renderProfilePage();
+                renderFlashcards();
+                
+                // Also revoke Google session if available
+                if (typeof google !== 'undefined' && google.accounts) {
+                    google.accounts.id.disableAutoSelect();
+                }
+                showAlert('Signed out', 'Your data has been saved to the cloud. Sign back in any time to restore it.');
+            });
         }
 
         function changePassword() {
@@ -6990,6 +7112,18 @@ Return ONLY the JSON array.`;
                     window.googleUser = JSON.parse(savedUser);
                     googleUser = window.googleUser;
                     updateGoogleUI();
+
+                    // Restore full data from Firebase (covers page refresh / new device)
+                    if (typeof window.restoreUserDataFromFirebase === 'function') {
+                        window.restoreUserDataFromFirebase().then(() => {
+                            updateGoogleUI();
+                            updateAllProfilePills();
+                            if (typeof renderSubjects === 'function') renderSubjects();
+                            if (typeof renderFlashcards === 'function') renderFlashcards();
+                            if (typeof renderProfilePage === 'function') renderProfilePage();
+                            if (typeof updateStats === 'function') updateStats();
+                        });
+                    }
                 } catch (e) {
                     console.error('Failed to parse saved user:', e);
                     localStorage.removeItem('googleUser');
@@ -7112,6 +7246,7 @@ Return ONLY the JSON array.`;
                     if (data.flashcards) {
                         flashcards = data.flashcards;
                         localStorage.setItem('start25_flashcards', JSON.stringify(flashcards));
+                        scheduleSyncToFirebase();
                     }
                     if (data.localStorage) {
                         Object.keys(data.localStorage).forEach(key => {
@@ -7149,6 +7284,7 @@ Return ONLY the JSON array.`;
             clearFlashcards: function() {
                 flashcards = [];
                 localStorage.setItem('start25_flashcards', JSON.stringify(flashcards));
+                scheduleSyncToFirebase();
                 console.log('Cleared all flashcards');
             },
             
