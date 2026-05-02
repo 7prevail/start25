@@ -1563,7 +1563,7 @@
             </div>
             
             <!-- Sign In Prompt (shown when logged out) -->
-            <div id="profileSignInPrompt" style="display: none;"></div>
+            <div id="profilePageSignInPrompt" style="display: none;"></div>
             
             <!-- Profile Content (shown when logged in) -->
             <div id="profileContent">
@@ -3307,28 +3307,6 @@
             }
         }
         
-        function openSubject(name) {
-            const subject = subjects.find(s => s.name === name);
-            if (!subject) return;
-            
-            currentSubject = name;
-            
-            // Update subject page content
-            document.getElementById('subjectTitle').textContent = subject.name;
-            document.getElementById('subjectMaterialsCount').textContent = (subject.materials?.length || 0) + ' materials';
-            
-            // Update level and progress
-            const level = subject.level || 1;
-            const xp = subject.xp || 0;
-            const progress = subject.progress || 0;
-            
-            document.getElementById('subjectLevel').textContent = `Level ${level}`;
-            document.getElementById('subjectXP').textContent = `${xp} XP`;
-            document.getElementById('subjectProgressBar').style.width = progress + '%';
-            document.getElementById('subjectProgressText').textContent = level >= 10 ? 'Mastered!' : `${progress}% to next level`;
-            
-            // Add gold border for mastered subjects
-        }
 
         function renameCurrentSubject() {
             const subject = subjects.find(s => s.name === currentSubject);
@@ -3470,18 +3448,25 @@
         function showMaterialType(type, subjectName) {
             const section = document.getElementById('materialInputSection');
             section.style.display = 'block';
-            
+
+            const backBtn = '<button id="matBackBtn" style="margin-bottom:14px; padding:8px 16px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; font-size:13px;">← Back</button>';
+
             if (type === 'pdf') {
-                section.innerHTML = '<div id="matFileZone" style="border: 2px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; cursor: pointer;"><div style="font-size: 32px; margin-bottom: 8px;">↓</div><div style="font-size: 14px; color: var(--text-muted);">Drop PDF here or click to browse</div><input type="file" id="materialFileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt"></div>';
+                section.innerHTML = backBtn + '<div id="matFileZone" style="border: 2px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; cursor: pointer;"><div style="font-size: 32px; margin-bottom: 8px;">↓</div><div style="font-size: 14px; color: var(--text-muted);">Drop PDF here or click to browse</div><input type="file" id="materialFileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt"></div>';
                 document.getElementById('matFileZone').addEventListener('click', () => document.getElementById('materialFileInput').click());
                 document.getElementById('materialFileInput').addEventListener('change', function() { handleMaterialFile(this, subjectName); });
             } else if (type === 'youtube') {
-                section.innerHTML = '<input type="text" id="youtubeUrlInput" placeholder="YouTube URL" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); margin-bottom: 12px;"><button id="saveYoutubeBtn" style="width: 100%; padding: 12px; background: var(--accent); color: var(--bg); border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Add YouTube Link</button>';
+                section.innerHTML = backBtn + '<input type="text" id="youtubeUrlInput" placeholder="YouTube URL" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); margin-bottom: 12px;"><button id="saveYoutubeBtn" style="width: 100%; padding: 12px; background: var(--accent); color: var(--bg); border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Add YouTube Link</button>';
                 document.getElementById('saveYoutubeBtn').addEventListener('click', () => saveYoutubeMaterial(subjectName));
             } else if (type === 'text') {
-                section.innerHTML = '<textarea id="textMaterialInput" placeholder="Paste your notes here" style="width: 100%; min-height: 120px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); resize: vertical; margin-bottom: 12px;"></textarea><button id="saveTextBtn" style="width: 100%; padding: 12px; background: var(--accent); color: var(--bg); border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Add Notes</button>';
+                section.innerHTML = backBtn + '<textarea id="textMaterialInput" placeholder="Paste your notes here" style="width: 100%; min-height: 120px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); resize: vertical; margin-bottom: 12px;"></textarea><button id="saveTextBtn" style="width: 100%; padding: 12px; background: var(--accent); color: var(--bg); border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Add Notes</button>';
                 document.getElementById('saveTextBtn').addEventListener('click', () => saveTextMaterial(subjectName));
             }
+
+            document.getElementById('matBackBtn').addEventListener('click', () => {
+                section.innerHTML = '';
+                section.style.display = 'none';
+            });
         }
 
         async function handleMaterialFile(input, subjectName) {
@@ -4264,14 +4249,14 @@ Return ONLY the JSON array, no other text.`;
         function renderProfilePage() {
             const isLoggedIn = (window.googleUser && window.googleUser.email) || localStorage.getItem('googleUser');
             const profileContent = document.getElementById('profileContent');
-            const signInPrompt = document.getElementById('profileSignInPrompt');
+            const signInPrompt = document.getElementById('profilePageSignInPrompt');
             
             if (!isLoggedIn) {
                 // LOGGED OUT: Hide content, show sign-in prompt
                 if (profileContent) profileContent.style.display = 'none';
                 if (signInPrompt) {
                     signInPrompt.style.display = 'block';
-                    signInPrompt.innerHTML = '<div class="card" style="margin-bottom: 24px; padding: 60px 40px; text-align: center;"><div style="font-size: 64px; margin-bottom: 24px;">👤</div><h2 style="margin-bottom: 12px; font-size: 24px;">Sign in to view your profile</h2><p style="color: var(--text-muted); margin-bottom: 32px;">Sign in with Google to track your progress, earn XP, and compete on the leaderboard.</p><div id="profileGoogleSignInBtn" style="display: flex; justify-content: center;"></div></div>';
+                    signInPrompt.innerHTML = '<div class="card" style="margin-bottom: 24px; padding: 60px 40px; text-align: center;"><div style="font-size: 64px; margin-bottom: 24px;">👤</div><h2 style="margin-bottom: 12px; font-size: 24px;">Sign in to view your profile</h2><p style="color: var(--text-muted); margin-bottom: 32px;">Sign in with Google to track your progress, earn XP, and compete on the leaderboard.</p><div id="profileGoogleSignInBtn" style="display: flex; justify-content: center; margin-bottom: 16px;"></div><a href="#" onclick="if(typeof google!==\'undefined\'&&google.accounts){google.accounts.id.prompt();}else{showAlert(\'Sign In\',\'Please refresh the page and try again.\');}return false;" style="color: var(--accent); font-size: 14px; text-decoration: underline; cursor: pointer;">Sign in with Google</a></div>';
                     setTimeout(function() {
                         var btn = document.getElementById('profileGoogleSignInBtn');
                         if (btn && typeof google !== 'undefined' && google.accounts && google.accounts.id) {
@@ -5961,31 +5946,28 @@ Return ONLY the JSON array.`;
         }
         
         function showConfirm(title, message, onConfirm) {
-            // Create custom confirm modal
             const modal = document.createElement('div');
+            modal.className = 'confirm-modal';
             modal.style.cssText = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: ${++modalZIndexCounter}; display: flex; align-items: center; justify-content: center;`;
             modal.innerHTML = '<div style="background: var(--surface); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">' +
                 '<h3 style="margin-bottom: 8px; color: #dc2626;">' + title + '</h3>' +
                 '<p style="color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">' + message + '</p>' +
                 '<div style="display: flex; gap: 12px;">' +
-                '<button onclick="this.closest(\'.confirm-modal\').remove()" style="flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer;">Cancel</button>' +
-                '<button onclick="this.closest(\'.confirm-modal\').dataset.confirmed = \'true\'; this.closest(\'.confirm-modal\').remove();" style="flex: 1; padding: 12px; border: none; border-radius: 8px; background: #dc2626; color: white; cursor: pointer;">Delete</button>' +
+                '<button id="confirmCancelBtn" style="flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; color: var(--text);">Cancel</button>' +
+                '<button id="confirmDeleteBtn" style="flex: 1; padding: 12px; border: none; border-radius: 8px; background: #dc2626; color: white; cursor: pointer; font-weight: 600;">Delete</button>' +
                 '</div>' +
             '</div>';
-            modal.className = 'confirm-modal';
             document.body.appendChild(modal);
-            
-            // Handle confirm
-            modal.addEventListener('remove', () => {
-                if (modal.dataset.confirmed) {
-                    onConfirm();
-                }
-            }, { once: true });
-            
-            // Click outside to close
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.remove();
+
+            // Wire buttons directly — no fake 'remove' event
+            modal.querySelector('#confirmCancelBtn').addEventListener('click', () => modal.remove());
+            modal.querySelector('#confirmDeleteBtn').addEventListener('click', () => {
+                modal.remove();
+                onConfirm();
             });
+
+            // Click backdrop to cancel
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
         }
 
         // XP/Level System
