@@ -51,6 +51,14 @@
                 }, 500);
             }
             
+            // Sync profile data from Firebase (for users who logged in on other devices)
+            if (typeof window.syncFromLeaderboard === 'function') {
+                window.syncFromLeaderboard().then(() => {
+                    window.updateGoogleUI();
+                    window.updateLeaderboard();
+                });
+            }
+            
             // First-time setup: prompt for username + profile pic if not set
             if (!localStorage.getItem('start25_username')) {
                 const attemptSetup = function(retries) {
@@ -6280,6 +6288,42 @@ Return ONLY the JSON array.`;
         }
 
         // Leaderboard System
+        
+        // Pull profile data from Firebase to localStorage (for sync across devices)
+        async function syncFromLeaderboard() {
+            if (!db) return;
+            
+            const user = getUserInfo();
+            if (!user || !user.email) return;
+            
+            try {
+                const userId = await hashEmail(user.email);
+                const snapshot = await db.ref('leaderboard/' + userId).once('value');
+                const data = snapshot.val();
+                
+                if (data) {
+                    // Sync username if exists and local doesn't have it
+                    if (data.username && !localStorage.getItem('start25_username')) {
+                        localStorage.setItem('start25_username', data.username);
+                    }
+                    // Sync display name if exists and local doesn't have it
+                    if (data.name && !localStorage.getItem('start25_displayName')) {
+                        localStorage.setItem('start25_displayName', data.name);
+                    }
+                    // Sync equipped title if exists
+                    if (data.title) {
+                        localStorage.setItem('start25_equipped_title', data.title);
+                    }
+                    // Note: We don't sync profile pic from Firebase as it could be large base64
+                    // XP and level are calculated locally from activity
+                    
+                    console.log('✅ Synced profile from leaderboard');
+                }
+            } catch (e) {
+                console.error('Failed to sync from leaderboard:', e);
+            }
+        }
+        
         async function updateLeaderboard() {
             if (!db) {
                 console.log('⚠️ Firebase not configured. Cannot update leaderboard.');
@@ -6338,6 +6382,8 @@ Return ONLY the JSON array.`;
                     callback([]);
                 });
         }
+        
+        window.syncFromLeaderboard = syncFromLeaderboard;
         
         function showLeaderboardPage() {
             showPage('leaderboard');
@@ -6794,6 +6840,9 @@ Return ONLY the JSON array.`;
             googleUser = null;
             localStorage.removeItem('googleUser');
             localStorage.removeItem('start25_profilePic');
+            localStorage.removeItem('start25_displayName');
+            localStorage.removeItem('start25_username');
+            localStorage.removeItem('start25_equipped_title');
             subjects = [];
             flashcards = [];
             showPage('home');
@@ -6801,7 +6850,6 @@ Return ONLY the JSON array.`;
             updateSettingsProfilePic();
             renderProfilePage();
             renderFlashcards();
-            updateLeaderboard();
             
             // Also revoke Google session if available
             if (typeof google !== 'undefined' && google.accounts) {
@@ -6903,7 +6951,9 @@ Return ONLY the JSON array.`;
                 
                 if (label) {
                     if (currentUser) {
-                        label.textContent = currentUser.name.split(' ')[0];
+                        // Show username if set, otherwise first name from Google
+                        const username = localStorage.getItem('start25_username');
+                        label.textContent = username || currentUser.name.split(' ')[0];
                     } else {
                         label.textContent = 'Profile';
                     }
