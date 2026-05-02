@@ -4256,6 +4256,53 @@ Return ONLY the JSON array, no other text.`;
 
         // Profile Page Rendering
         function renderProfilePage() {
+            // Check if logged in
+            const isLoggedIn = window.googleUser !== null || localStorage.getItem('googleUser') !== null;
+            
+            // If not logged in, show sign-in prompt prominently
+            if (!isLoggedIn) {
+                const profileCard = document.getElementById('profileCard');
+                if (profileCard) profileCard.style.display = 'none';
+                const signInPrompt = document.getElementById('profileSignInPrompt');
+                if (signInPrompt) {
+                    signInPrompt.style.display = 'block';
+                    signInPrompt.innerHTML = `
+                        <div style="padding: 60px 40px; text-align: center;">
+                            <div style="font-size: 64px; margin-bottom: 24px;">👤</div>
+                            <h2 style="margin-bottom: 12px;">Sign in to view your profile</h2>
+                            <p style="color: var(--text-muted); margin-bottom: 32px; max-width: 400px; margin-left: auto; margin-right: auto;">
+                                Sign in with Google to track your progress, earn XP, and compete on the leaderboard.
+                            </p>
+                            <div id="profileGoogleSignInBtn" style="display: flex; justify-content: center;"></div>
+                        </div>
+                    `;
+                    // Render Google button in the prompt
+                    setTimeout(() => {
+                        if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                            const container = document.getElementById('profileGoogleSignInBtn');
+                            if (container) {
+                                const isDark = document.body.getAttribute('data-theme') === 'dark';
+                                google.accounts.id.renderButton(container, {
+                                    type: 'standard',
+                                    shape: 'pill',
+                                    theme: isDark ? 'filled_black' : 'outline',
+                                    text: 'signin_with',
+                                    size: 'large',
+                                    logo_alignment: 'left'
+                                });
+                            }
+                        }
+                    }, 100);
+                }
+                return; // Stop here - don't render profile content
+            }
+            
+            // Show profile card when logged in
+            const profileCard = document.getElementById('profileCard');
+            if (profileCard) profileCard.style.display = 'block';
+            const signInPrompt = document.getElementById('profileSignInPrompt');
+            if (signInPrompt) signInPrompt.style.display = 'none';
+            
             // Get Google user data if signed in
             let googleUserData = null;
             if (window.googleUser) {
@@ -4279,9 +4326,7 @@ Return ONLY the JSON array, no other text.`;
             const level = safeParse('start25_level', {level: 1, xp: 0, maxXp: 100});
             const currentXP = getXP();
             const equippedTitle = localStorage.getItem('start25_equipped_title');
-            // Only show title if logged in
-            const isLoggedIn = window.googleUser !== null;
-            const currentTitle = isLoggedIn ? (equippedTitle || getTitleForXP(currentXP)) : '';
+            const currentTitle = equippedTitle || getTitleForXP(currentXP);
             
             // Update user header
             const avatarEl = document.getElementById('profilePageAvatar');
@@ -4315,12 +4360,8 @@ Return ONLY the JSON array, no other text.`;
             if (displayNameEl) displayNameEl.textContent = displayName;
             const titleEl = document.getElementById('profilePageTitle');
             if (titleEl) {
-                if (currentTitle) {
-                    titleEl.textContent = currentTitle;
-                    titleEl.style.display = 'inline-flex';
-                } else {
-                    titleEl.style.display = 'none';
-                }
+                titleEl.textContent = currentTitle;
+                titleEl.style.display = 'inline-flex';
             }
             const displayEl = document.getElementById('profilePageDisplay');
             if (displayEl) displayEl.textContent = `@${username} • Level ${userLevel}`;
