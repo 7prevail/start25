@@ -7316,11 +7316,31 @@ Return ONLY the JSON array.`;
             }
         });
 
+        // Check if streak should be reset (missed a day)
+        function checkStreakReset() {
+            const streak = safeParse('start25_streak', {count: 0, lastDate: null});
+            if (!streak.lastDate || streak.count === 0) return;
+            
+            const today = new Date().toDateString();
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            // If last study was before yesterday, streak is broken
+            if (streak.lastDate !== today && streak.lastDate !== yesterday.toDateString()) {
+                streak.count = 0;
+                streak.lastDate = null;
+                localStorage.setItem('start25_streak', JSON.stringify(streak));
+                syncUserDataToFirebase();
+                console.log('💔 Streak broken! Reset to 0.');
+            }
+        }
+        
         // ── Init
         loadTheme();
         loadAccentColor();
         updateLevelDisplay();
         selectDuration(30);
+        checkStreakReset();
         
         // Route based on URL
         const initialPage = getPageFromUrl();
