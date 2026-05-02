@@ -1553,7 +1553,7 @@
                     </div>
                     <div style="flex: 1;">
                         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                            <h1 id="profilePageDisplayName" style="font-size: 24px; margin: 0;">DisplayName</h1>
+                            <h1 id="profilePageDisplayName" onclick="changeDisplayName()" style="font-size: 24px; margin: 0; cursor: pointer;" title="Click to change display name">DisplayName</h1>
                             <p id="profilePageTitle" onclick="showTitleSelector()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); padding: 4px 10px; border-radius: 999px; margin: 0; cursor: pointer;" title="Click to change title">Rookie Scholar</p>
                         </div>
                         <p id="profilePageDisplay" style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">@username Level 1</p>
@@ -4251,10 +4251,10 @@ Return ONLY the JSON array, no other text.`;
                 }
             }
             
-            // User info - prioritize Google data, fall back to localStorage
-            const rawUsername = (googleUserData && googleUserData.name) || localStorage.getItem('start25_username') || 'User';
+            // User info - prioritize localStorage (user-set) data, fall back to Google
+            const rawUsername = localStorage.getItem('start25_username') || (googleUserData && googleUserData.name) || 'User';
             const username = rawUsername.toLowerCase().replace(/[^a-z0-9_]/g, '');
-            const profilePic = (googleUserData && googleUserData.picture) || localStorage.getItem('start25_profilePic');
+            const profilePic = localStorage.getItem('start25_profilePic') || (googleUserData && googleUserData.picture);
             const userEmail = (googleUserData && googleUserData.email) || '';
             const level = safeParse('start25_level', {level: 1, xp: 0, maxXp: 100});
             const currentXP = getXP();
@@ -5654,6 +5654,7 @@ Return ONLY the JSON array.`;
                     localStorage.setItem('start25_profilePic', base64);
                     updateAllProfilePills();
                     updateSettingsProfilePic();
+                    renderProfilePage();
                     updateLeaderboard();
                     showAlert('Success', 'Profile picture updated!');
                 };
@@ -5733,6 +5734,8 @@ Return ONLY the JSON array.`;
                 
                 localStorage.setItem('start25_username', cleanUsername);
                 updateLeaderboard();
+                updateAllProfilePills();
+                renderProfilePage();
                 showAlert('Success', 'Your username is now @' + cleanUsername);
             });
         }
@@ -5850,8 +5853,9 @@ Return ONLY the JSON array.`;
                 const cleanName = sanitizeInput(name, 50);
                 if (cleanName) {
                     localStorage.setItem('start25_displayName', cleanName);
-                    // Update leaderboard if user is logged in
                     updateLeaderboard();
+                    updateAllProfilePills();
+                    renderProfilePage();
                     showAlert('Success', 'Your display name has been updated!');
                 }
             });
@@ -6843,6 +6847,8 @@ Return ONLY the JSON array.`;
             localStorage.removeItem('start25_displayName');
             localStorage.removeItem('start25_username');
             localStorage.removeItem('start25_equipped_title');
+            localStorage.removeItem('start25_subjects');
+            localStorage.removeItem('start25_flashcards');
             subjects = [];
             flashcards = [];
             showPage('home');
