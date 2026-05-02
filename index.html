@@ -1144,12 +1144,12 @@
             <div class="greeting" id="timeGreeting">Your Library</div>
             <h1 id="dailyHeadline" class="headline" style="display: flex; align-items: center; gap: 20px; margin-bottom: 8px;">All your subjects and materials<span id="streakDisplay" style="font-size: 0.85em; color: var(--text-muted);"></span></h1>
             <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 32px; padding-bottom: 8px;" id="homeScrollContainer">
-                <div id="topCardsRow" style="display: flex; gap: 16px; flex-wrap: nowrap;">
+                <div id="topCardsRow" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start;">
                     <div style="width: 160px; height: 180px; border: 2px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s; background: var(--surface); flex-shrink: 0;" onclick="openAddSubjectModal()" onmouseover="this.style.borderColor='var(--accent)'; this.style.background='var(--surface-2)';" onmouseout="this.style.borderColor='var(--border)'; this.style.background='var(--surface)';">
                         <span style="font-size: 24px; color: var(--text);">+</span>
                         <span style="font-size: 12px; color: var(--text-muted);">add subject</span>
                     </div>
-                    <div id="untaggedCards" style="display: flex; gap: 16px; flex-wrap: wrap;"></div>
+                    <div id="untaggedCards" style="display: contents;"></div>
                 </div>
                 <div id="subjectCards" style="display: flex; flex-direction: column; gap: 24px; min-width: 0; flex: 1;">
                     <!-- Grouped subject cards rendered here -->
