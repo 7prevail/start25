@@ -4327,8 +4327,22 @@ Return ONLY the JSON array, no other text.`;
             if (displayNameEl) displayNameEl.textContent = displayName;
             const titleEl = document.getElementById('profilePageTitle');
             if (titleEl) {
-                titleEl.textContent = currentTitle;
+                const titleData = ALL_TITLES.find(t => t.name === currentTitle);
+                const titleText = titleData?.icon ? `${titleData.icon} ${currentTitle}` : currentTitle;
+                titleEl.textContent = titleText;
                 titleEl.style.display = 'inline-flex';
+                // Apply gold styling for Owner
+                if (currentTitle === 'Owner') {
+                    titleEl.style.background = 'linear-gradient(135deg, #ffd700 20%, #ffed4a 50%, #ffd700 80%)';
+                    titleEl.style.color = '#1a1a1a';
+                    titleEl.style.border = '1px solid #daa520';
+                    titleEl.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.3)';
+                } else {
+                    titleEl.style.background = 'color-mix(in srgb, var(--accent) 14%, var(--surface-2))';
+                    titleEl.style.color = 'var(--accent)';
+                    titleEl.style.border = '1px solid color-mix(in srgb, var(--accent) 40%, var(--border))';
+                    titleEl.style.boxShadow = 'none';
+                }
             }
             const displayEl = document.getElementById('profilePageDisplay');
             if (displayEl) displayEl.textContent = `@${username} • Level ${userLevel}`;
@@ -5976,6 +5990,7 @@ Return ONLY the JSON array.`;
 
         // XP/Level System
         const ALL_TITLES = [
+            { name: 'Owner', xp: 0, icon: '👑', gold: true, special: true },
             { name: 'Rookie Scholar', xp: 0 },
             { name: 'Rising Scholar', xp: 80 },
             { name: 'Steady Student', xp: 200 },
@@ -6049,8 +6064,18 @@ Return ONLY the JSON array.`;
                     badge = '<span style="font-size: 11px; color: var(--text-muted);">Auto-equipped</span>';
                 }
 
+                const titleIcon = title.icon || '';
+                const titleDisplay = titleIcon ? `${titleIcon} ${title.name}` : title.name;
+                
+                // Gold styling for Owner title
+                if (title.name === 'Owner' && isUnlocked) {
+                    style = style.replace('background: var(--surface)', 'background: linear-gradient(135deg, #ffd700 20%, #ffed4a 50%, #ffd700 80%)');
+                    style = style.replace('border: 1px solid var(--border)', 'border: 1px solid #daa520');
+                    style += ' color: #1a1a1a; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);';
+                }
+                
                 html += `<div style="${style}" ${isUnlocked ? `onclick="equipTitle('${title.name}')"` : ''}>`;
-                html += `<span style="font-weight: 600; font-size: 14px;">${title.name}</span>`;
+                html += `<span style="font-weight: 600; font-size: 14px;">${titleDisplay}</span>`;
                 html += badge;
                 html += '</div>';
             });
