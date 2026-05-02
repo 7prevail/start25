@@ -2127,7 +2127,14 @@
         }
 
         // Navigation
+        // Page navigation with debounce
+        let _navigating = false;
         function showPage(page) {
+            // Guard: already on this page or navigating
+            if (page === currentPage || _navigating) return;
+            _navigating = true;
+            setTimeout(() => _navigating = false, 300);
+            
             currentPage = page;
             // Animate page transition
             const activePage = document.querySelector('.page.active');
