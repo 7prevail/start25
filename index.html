@@ -2162,8 +2162,15 @@
                     }
                 }, 150);
             } else if (pageEl) {
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(p => {
+                    p.classList.remove('active');
+                    p.style.opacity = ''; p.style.transform = '';
+                });
                 pageEl.classList.add('active');
+                // Force reflow for initial animation
+                void pageEl.offsetHeight;
+                pageEl.style.opacity = '1';
+                pageEl.style.transform = 'translateY(0)';
             }
             
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
