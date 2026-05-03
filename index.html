@@ -2925,7 +2925,34 @@
 
         function addModalFiles(files) {
             for (let i = 0; i < files.length; i++) {
-                modalDroppedFilesList.push(files[i]);
+                const file = files[i];
+                
+                // File validation
+                const supportedTypes = ['.pdf', '.pptx', '.ppt', '.doc', '.docx', '.txt'];
+                const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+                
+                if (!supportedTypes.includes(fileExt)) {
+                    showAlert('Unsupported File', `${file.name} is not supported. Please use PDF, PowerPoint, Word, or text files.`);
+                    continue;
+                }
+                
+                // Check file size (50MB limit)
+                if (file.size > 50 * 1024 * 1024) {
+                    showAlert('File Too Large', `${file.name} is too large. Maximum file size is 50MB.`);
+                    continue;
+                }
+                
+                // Check for duplicates
+                const isDuplicate = modalDroppedFilesList.some(existing => 
+                    existing.name === file.name && existing.size === file.size
+                );
+                
+                if (isDuplicate) {
+                    showAlert('Duplicate File', `${file.name} has already been added.`);
+                    continue;
+                }
+                
+                modalDroppedFilesList.push(file);
             }
             displayModalFiles();
         }
@@ -2962,14 +2989,31 @@
                 const file = modalDroppedFilesList[i];
                 const div = document.createElement('div');
                 div.style.cssText = 'padding: 6px 12px; background: var(--surface-2); border-radius: 8px; margin-bottom: 4px; font-size: 13px; display: flex; align-items: center; gap: 8px;';
+                
                 let icon = '📄';
                 if (file.name.endsWith('.pdf')) icon = '📄';
                 else if (file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) icon = '📊';
                 else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) icon = '📝';
                 else if (file.name.endsWith('.txt')) icon = '📋';
-                div.innerHTML = '<span>' + icon + '</span><span>' + file.name + '</span>';
+                
+                // Add file size info
+                const fileSize = (file.size / 1024 / 1024).toFixed(1) + ' MB';
+                
+                div.innerHTML = `
+                    <span>${icon}</span>
+                    <div style="flex: 1;">
+                        <div>${file.name}</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">${fileSize}</div>
+                    </div>
+                    <button onclick="removeModalFile(${i})" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">×</button>
+                `;
                 container.appendChild(div);
             }
+        }
+        
+        function removeModalFile(index) {
+            modalDroppedFilesList.splice(index, 1);
+            displayModalFiles();
         }
 
         async function saveSubjectFromModal() {
@@ -3004,22 +3048,58 @@
                 weakAreas: []
             };
             
-            // Add files from drop zone with text extraction for PDF
+            // Add files from drop zone with progress indicators and error handling
             for (let i = 0; i < modalDroppedFilesList.length; i++) {
                 const file = modalDroppedFilesList[i];
                 let content = '';
                 let type = 'file';
-                if (file.type === 'application/pdf') {
-                    content = await extractPdfText(file);
-                    type = 'pdf';
-                } else if (file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
-                    type = 'pptx';
-                } else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-                    type = 'doc';
-                } else if (file.name.endsWith('.txt')) {
-                    content = await file.text();
-                    type = 'text';
+                
+                try {
+                    // Update UI to show processing
+                    const fileElements = document.querySelectorAll('#modalDroppedFiles > div');
+                    if (fileElements[i]) {
+                        fileElements[i].style.opacity = '0.6';
+                        fileElements[i].innerHTML += '<span style="margin-left: 8px; font-size: 11px; color: var(--accent);">Processing...</span>';
+                    }
+                    
+                    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+                        content = await extractPdfText(file);
+                        type = 'pdf';
+                        
+                        // Validate PDF extraction
+                        if (!content || content.trim().length < 10) {
+                            throw new Error('PDF could not be read - it may be scanned images or password protected');
+                        }
+                    } else if (file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
+                        type = 'pptx';
+                    } else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+                        type = 'doc';
+                    } else if (file.name.endsWith('.txt')) {
+                        content = await file.text();
+                        type = 'text';
+                    }
+                    
+                    // Mark as processed successfully
+                    if (fileElements[i]) {
+                        fileElements[i].style.opacity = '1';
+                        fileElements[i].querySelector('span:last-child').textContent = '✓ Ready';
+                        fileElements[i].querySelector('span:last-child').style.color = 'var(--success)';
+                    }
+                    
+                } catch (error) {
+                    console.error(`Failed to process ${file.name}:`, error);
+                    
+                    // Show error in UI
+                    if (fileElements[i]) {
+                        fileElements[i].style.opacity = '1';
+                        fileElements[i].querySelector('span:last-child').textContent = '✗ Failed';
+                        fileElements[i].querySelector('span:last-child').style.color = 'var(--error)';
+                    }
+                    
+                    // Still add the file but note the error
+                    content = `[Error processing file: ${error.message}]`;
                 }
+                
                 subject.materials.push({ type: type, name: file.name, content: content });
             }
             
@@ -3033,6 +3113,17 @@
             subjects.push(subject);
             try {
                 localStorage.setItem('start25_subjects', JSON.stringify(subjects));
+                
+                // Count successful and failed files
+                const successful = subject.materials.filter(m => !m.content.includes('[Error processing file]')).length;
+                const failed = subject.materials.filter(m => m.content.includes('[Error processing file]')).length;
+                
+                let message = `Subject "${name}" created successfully!`;
+                if (successful > 0) message += `\n✓ ${successful} file(s) processed`;
+                if (failed > 0) message += `\n⚠ ${failed} file(s) had issues`;
+                
+                showAlert('Success', message);
+                
             } catch (e) {
                 if (e.name === 'QuotaExceededError') {
                     // If storage is full, truncate PDF content
@@ -3864,81 +3955,139 @@
         async function generateTestQuestions(subjectName, focus, materialContent, difficulty, type, count) {
             // Require material content
             if (!materialContent || materialContent.trim().length < 50) {
+                console.warn('Insufficient material content for question generation');
                 return [];
             }
 
-            const prompt = `Create ${count} ${difficulty} difficulty ${type} questions for ${subjectName}${focus ? ' focusing on: ' + focus : ''}.
+            const prompt = `Create exactly ${count} ${difficulty} difficulty ${type} questions for ${subjectName}${focus ? ' focusing on: ' + focus : ''}.
 
 Use this material content to create specific questions: ${materialContent.substring(0, 3000)}
 
-Requirements:
+CRITICAL REQUIREMENTS:
+- Create EXACTLY ${count} questions - no more, no less
 - Questions must be specific and based on actual content from the material
 - Do NOT use generic questions like "What is a key concept in..."
 - Create questions that test understanding of specific facts, calculations, or problems from the material
 - For multiple choice: provide 4 distinct options with only one correct answer
 - For short answer: provide a clear expected answer
 
-Format as JSON array. For multiple_choice: {"question": "...", "options": ["a", "b", "c", "d"], "correct": 0, "explanation": "Why this is the correct answer...", "type": "multiple_choice"}. For short_answer: {"question": "...", "answer": "...", "explanation": "Detailed explanation of the answer...", "type": "short_answer"}.
+Format as JSON array with exactly ${count} items. For multiple_choice: {"question": "...", "options": ["a", "b", "c", "d"], "correct": 0, "explanation": "Why this is the correct answer...", "type": "multiple_choice"}. For short_answer: {"question": "...", "answer": "...", "explanation": "Detailed explanation of the answer...", "type": "short_answer"}.
 
 Return ONLY the JSON array, no other text.`;
 
-            try {
-                // Use real AI API
-                const r = await fetch('/api/gemini', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'llama-3.1-8b-instant',
-                        messages: [
-                            { role: 'system', content: 'You are a smart, friendly study buddy helping a friend prepare for a test. Be conversational but accurate. Create specific, practical questions they might actually see on an exam. Use clear explanations like you are explaining to a friend over coffee - not too formal, but make sure they understand the concept. Never use generic placeholder questions. CRITICAL: When writing ANY mathematical equations, formulas, integrals, fractions, or symbols in questions, options, or explanations, you MUST use LaTeX format with dollar signs. Always wrap math in $...$ for inline math or $$...$$ for display math. Examples you MUST follow: Write $\\int E \\, dx$ instead of ∫E dx. Write $\\frac{dV}{dx}$ instead of dV/dx. Write $E = mc^2$ instead of E = mc^2. Write $\\lambda$ instead of λ. Write $\\epsilon_0$ instead of ε₀. Never write plain text math - always use LaTeX with dollar signs.' },
-                            { role: 'user', content: prompt }
-                        ],
-                        temperature: 0.7
-                    })
-                });
-                
-                if (!r.ok) {
-                    console.error('API error:', r.status, await r.text());
-                    throw new Error('API error: ' + r.status);
-                }
-                
-                const data = await r.json();
-                
-                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                    throw new Error('Invalid API response');
-                }
-                
-                const response = data.choices[0].message.content;
-                
-                const match = response.match(/\[[\s\S]*\]/);
-                if (match) {
-                    let questions;
-                    try {
-                        questions = JSON.parse(match[0]);
-                    } catch (parseError) {
-                        console.error('Failed to parse questions:', parseError);
-                        return [];
+            // Retry logic for API calls
+            let lastError = null;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    console.log(`Question generation attempt ${attempt} for ${count} ${type} questions`);
+                    
+                    // Use real AI API
+                    const r = await fetch('/api/gemini', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: 'llama-3.1-8b-instant',
+                            messages: [
+                                { role: 'system', content: 'You are a smart, friendly study buddy helping a friend prepare for a test. Be conversational but accurate. Create specific, practical questions they might actually see on an exam. Use clear explanations like you are explaining to a friend over coffee - not too formal, but make sure they understand the concept. Never use generic placeholder questions. CRITICAL: When writing ANY mathematical equations, formulas, integrals, fractions, or symbols in questions, options, or explanations, you MUST use LaTeX format with dollar signs. Always wrap math in $...$ for inline math or $$...$$ for display math. Examples you MUST follow: Write $\\int E \\, dx$ instead of ∫E dx. Write $\\frac{dV}{dx}$ instead of dV/dx. Write $E = mc^2$ instead of E = mc^2. Write $\\lambda$ instead of λ. Write $\\epsilon_0$ instead of ε₀. Never write plain text math - always use LaTeX with dollar signs.' },
+                                { role: 'user', content: prompt }
+                            ],
+                            temperature: 0.7
+                        })
+                    });
+                    
+                    if (!r.ok) {
+                        console.error('API error:', r.status, await r.text());
+                        throw new Error('API error: ' + r.status);
                     }
-                    // Validate and ensure questions have required fields
-                    return questions.map(q => ({
-                        question: q.question || 'Question',
-                        options: q.options || ['A', 'B', 'C', 'D'],
-                        correct: q.correct || 0,
-                        answer: q.answer || '',
-                        explanation: q.explanation || '',
-                        type: type,
-                        subject: subjectName
-                    }));
-                } else {
-                    throw new Error('No JSON array found in response');
+                    
+                    const data = await r.json();
+                    
+                    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                        throw new Error('Invalid API response');
+                    }
+                    
+                    const response = data.choices[0].message.content;
+                    console.log('API response length:', response.length);
+                    
+                    const match = response.match(/\[[\s\S]*\]/);
+                    if (match) {
+                        let questions;
+                        try {
+                            questions = JSON.parse(match[0]);
+                            console.log(`Parsed ${questions.length} questions from API`);
+                            
+                            // Ensure we have the right number of questions
+                            if (questions.length !== count) {
+                                console.warn(`Expected ${count} questions, got ${questions.length}`);
+                            }
+                            
+                            // Validate and ensure questions have required fields
+                            const validQuestions = questions.map(q => ({
+                                question: q.question || 'Question',
+                                options: q.options || ['A', 'B', 'C', 'D'],
+                                correct: q.correct || 0,
+                                answer: q.answer || '',
+                                explanation: q.explanation || '',
+                                type: type,
+                                subject: subjectName
+                            }));
+                            
+                            return validQuestions;
+                            
+                        } catch (parseError) {
+                            console.error('Failed to parse questions:', parseError);
+                            lastError = parseError;
+                            continue; // Try again
+                        }
+                    } else {
+                        throw new Error('No JSON array found in response');
+                    }
+                } catch (e) {
+                    console.error(`Attempt ${attempt} failed:`, e);
+                    lastError = e;
+                    
+                    // Wait before retry (except on last attempt)
+                    if (attempt < 3) {
+                        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                    }
                 }
-            } catch (e) {
-                console.error('Failed to generate test questions:', e);
-                // Return empty - caller will handle fallback
-                return [];
             }
+            
+            // All attempts failed - return fallback questions
+            console.error('All attempts failed, returning fallback questions');
+            return generateFallbackQuestions(subjectName, type, count);
+        }
+        
+        function generateFallbackQuestions(subjectName, type, count) {
+            const fallbackQuestions = [];
+            for (let i = 0; i < count; i++) {
+                if (type === 'multiple_choice') {
+                    fallbackQuestions.push({
+                        question: `What is an important concept in ${subjectName}?`,
+                        options: [
+                            'Option A: A fundamental principle',
+                            'Option B: An advanced technique',
+                            'Option C: A theoretical framework',
+                            'Option D: A practical application'
+                        ],
+                        correct: 0,
+                        explanation: 'This is a fallback question. Please upload more specific study materials for better questions.',
+                        type: 'multiple_choice',
+                        subject: subjectName
+                    });
+                } else {
+                    fallbackQuestions.push({
+                        question: `Explain a key concept from ${subjectName}.`,
+                        answer: 'This is a fallback answer. Please upload more specific study materials.',
+                        explanation: 'This is a fallback question. Please upload more specific study materials for better questions.',
+                        type: 'short_answer',
+                        subject: subjectName
+                    });
+                }
+            }
+            return fallbackQuestions;
         }
 
         function startSubjectQuiz(subjectName) {
