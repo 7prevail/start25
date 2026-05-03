@@ -3923,18 +3923,23 @@
             
             // Generate multiple choice questions
             if (mcCount > 0) {
+                console.log(`Generating ${mcCount} multiple choice questions`);
                 const mcQuestions = await generateTestQuestions(subjectName, focus, materialContent, difficulty, 'multiple_choice', mcCount);
+                console.log('Generated MC questions:', mcQuestions);
                 currentQuiz = currentQuiz.concat(mcQuestions);
             }
             
             // Generate short answer questions
             if (saCount > 0) {
+                console.log(`Generating ${saCount} short answer questions`);
                 const saQuestions = await generateTestQuestions(subjectName, focus, materialContent, difficulty, 'short_answer', saCount);
+                console.log('Generated SA questions:', saQuestions);
                 currentQuiz = currentQuiz.concat(saQuestions);
             }
             
             // Shuffle questions
             currentQuiz = currentQuiz.sort(() => Math.random() - 0.5);
+            console.log('Final quiz after shuffling:', currentQuiz);
             
             // Remove loading modal
             const modal = document.getElementById('testGenerationModal');
@@ -7048,7 +7053,12 @@ Return ONLY the JSON array.`;
 
         function renderAllQuestions() {
             const container = document.getElementById('quizArea');
-            if (!currentQuiz || currentQuiz.length === 0) return;
+            if (!currentQuiz || currentQuiz.length === 0) {
+                console.error('No quiz questions to render');
+                return;
+            }
+            
+            console.log('Rendering quiz:', currentQuiz);
             
             let html = '<div style="max-height: 70vh; overflow-y: auto; padding-right: 8px;">';
             
@@ -7056,21 +7066,31 @@ Return ONLY the JSON array.`;
                 const userAnswer = quizUserAnswers[idx];
                 const isAnswered = userAnswer !== undefined;
                 
+                console.log(`Question ${idx}:`, q, 'User answer:', userAnswer);
+                
                 html += '<div class="card" style="margin-bottom: 20px;" id="question-' + idx + '">';
-                html += '<div style="margin-bottom: 8px; font-size: 12px; color: var(--text-muted);">Question ' + (idx + 1) + ' of ' + currentQuiz.length + '</div>';
+                html += '<div style="margin-bottom: 8px; font-size: 12px; color: var(--text-muted);">Question ' + (idx + 1) + ' of ' + currentQuiz.length + ' (' + q.type + ')</div>';
                 html += '<h3 style="font-size: 18px; margin-bottom: 16px;">' + q.question + '</h3>';
                 
                 if (q.type === 'short_answer') {
                     html += '<textarea id="sa-' + idx + '" placeholder="Type your answer here..." oninput="saveShortAnswer(' + idx + ', this.value)" style="width: 100%; min-height: 80px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); resize: vertical;">' + (userAnswer || '') + '</textarea>';
+                } else if (q.type === 'multiple_choice') {
+                    if (!q.options || q.options.length === 0) {
+                        console.error(`No options for multiple choice question ${idx}`);
+                        html += '<div style="color: var(--error);">Error: No options available for this question</div>';
+                    } else {
+                        html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+                        q.options.forEach((opt, optIdx) => {
+                            const isSelected = userAnswer === optIdx;
+                            const borderColor = isSelected ? 'var(--accent)' : 'var(--border)';
+                            const bgColor = isSelected ? 'var(--surface-2)' : 'var(--surface)';
+                            html += '<button onclick="selectAnswer(' + idx + ', ' + optIdx + ')" style="text-align: left; padding: 14px; border: 2px solid ' + borderColor + '; border-radius: 8px; background: ' + bgColor + '; color: var(--text); cursor: pointer; transition: all 0.2s;">' + opt + '</button>';
+                        });
+                        html += '</div>';
+                    }
                 } else {
-                    html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
-                    q.options.forEach((opt, optIdx) => {
-                        const isSelected = userAnswer === optIdx;
-                        const borderColor = isSelected ? 'var(--accent)' : 'var(--border)';
-                        const bgColor = isSelected ? 'var(--surface-2)' : 'var(--surface)';
-                        html += '<button onclick="selectAnswer(' + idx + ', ' + optIdx + ')" style="text-align: left; padding: 14px; border: 2px solid ' + borderColor + '; border-radius: 8px; background: ' + bgColor + '; color: var(--text); cursor: pointer; transition: all 0.2s;">' + opt + '</button>';
-                    });
-                    html += '</div>';
+                    console.warn(`Unknown question type: ${q.type}`);
+                    html += '<div style="color: var(--error);">Error: Unknown question type: ' + q.type + '</div>';
                 }
                 
                 html += '</div>';
@@ -7095,7 +7115,9 @@ Return ONLY the JSON array.`;
         }
 
         function selectAnswer(qIndex, answer) {
+            console.log(`selectAnswer called: qIndex=${qIndex}, answer=${answer}`);
             quizUserAnswers[qIndex] = answer;
+            console.log('Updated quizUserAnswers:', quizUserAnswers);
             renderAllQuestions(); // Re-render to show selection
         }
 
