@@ -357,46 +357,50 @@
         
         /* Test loader animation - hourglass */
         .test-loader {
-            width: 40px;
+            width: 30px;
             height: 40px;
             position: relative;
             animation: hourglassFlip 3s ease-in-out infinite;
         }
-        .test-loader::before,
+        .test-loader::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 40px;
+            border: 3px solid var(--accent);
+            border-radius: 3px;
+            clip-path: polygon(0 0, 100% 0, 50% 50%, 100% 100%, 0 100%, 50% 50%);
+        }
         .test-loader::after {
             content: '';
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 10px;
+            height: 10px;
             background: var(--accent);
-            border-radius: 2px;
-        }
-        .test-loader::before {
-            top: 0;
-            left: 10px;
-            clip-path: polygon(0 0, 100% 0, 50% 100%);
-            animation: topSand 3s ease-in-out infinite;
-        }
-        .test-loader::after {
-            bottom: 0;
-            left: 10px;
-            clip-path: polygon(50% 0, 0 100%, 100% 100%);
-            animation: bottomSand 3s ease-in-out infinite;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: sandFlow 3s ease-in-out infinite;
         }
         @keyframes hourglassFlip {
             0%, 45% { transform: rotate(0deg); }
             50%, 95% { transform: rotate(180deg); }
             100% { transform: rotate(360deg); }
         }
-        @keyframes topSand {
-            0%, 45% { opacity: 1; }
-            50%, 95% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
-        @keyframes bottomSand {
-            0%, 45% { opacity: 0.3; }
-            50%, 95% { opacity: 1; }
-            100% { opacity: 0.3; }
+        @keyframes sandFlow {
+            0%, 45% { 
+                top: 35%;
+                opacity: 1;
+            }
+            50%, 95% { 
+                top: 65%;
+                opacity: 0.3;
+            }
+            100% { 
+                top: 35%;
+                opacity: 1;
+            }
         }
         .headline {
             font-size: 32px;
