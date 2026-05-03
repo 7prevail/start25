@@ -2887,15 +2887,22 @@
                 const arrayBuffer = await file.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                 let text = '';
-                for (let i = 1; i <= Math.min(pdf.numPages, 50); i++) { // Limit to 50 pages
+                // Increased limits for textbooks
+                const maxPages = Math.min(pdf.numPages, 100);
+                for (let i = 1; i <= maxPages; i++) {
                     const page = await pdf.getPage(i);
                     const content = await page.getTextContent();
                     text += content.items.map(item => item.str).join(' ') + '\n';
                 }
-                return text.substring(0, 50000); // Limit to 50k characters
+                // Store up to 200k characters for larger textbooks
+                const result = text.substring(0, 200000);
+                if (text.length > 200000) {
+                    console.log(`PDF truncated: ${text.length} chars -> 200000 chars`);
+                }
+                return result;
             } catch (e) {
                 console.error('PDF extraction failed:', e);
-                return '';
+                return `[Error extracting PDF: ${file.name}]`;
             }
         }
 
@@ -2976,7 +2983,28 @@
             }
             
             subjects.push(subject);
-            localStorage.setItem('start25_subjects', JSON.stringify(subjects));
+            try {
+                localStorage.setItem('start25_subjects', JSON.stringify(subjects));
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    // If storage is full, truncate PDF content
+                    subject.materials.forEach(m => {
+                        if (m.content && m.content.length > 50000) {
+                            m.content = m.content.substring(0, 50000) + '...[truncated due to storage limits]';
+                        }
+                    });
+                    try {
+                        localStorage.setItem('start25_subjects', JSON.stringify(subjects));
+                        showAlert('Storage Warning', 'Your PDF was too large and has been truncated. Consider using smaller files or splitting into multiple subjects.');
+                    } catch (e2) {
+                        showAlert('Storage Full', 'The file is too large. Try a smaller PDF or remove other subjects first.');
+                        subjects.pop(); // Remove the subject we just added
+                        return;
+                    }
+                } else {
+                    throw e;
+                }
+            }
             closeAddSubjectModal();
             renderSubjects();
             updateLevelDisplay();
