@@ -4016,7 +4016,16 @@ Return ONLY the JSON array, no other text.`;
                     });
                     
                     if (!r.ok) {
-                        console.error('API error:', r.status, await r.text());
+                        const errorText = await r.text();
+                        console.error('API error:', r.status, errorText);
+                        
+                        // Check for quota exceeded
+                        if (errorText.includes('quota') || errorText.includes('RESOURCE_EXHAUSTED') || r.status === 429) {
+                            const waitTime = errorText.match(/retry in (\d+)/);
+                            const waitMinutes = waitTime ? Math.ceil(parseInt(waitTime[1]) / 60) : 60;
+                            throw new Error(`API quota exceeded. Please wait ${waitMinutes} minutes or try again tomorrow.`);
+                        }
+                        
                         throw new Error('API error: ' + r.status);
                     }
                     
@@ -4029,11 +4038,24 @@ Return ONLY the JSON array, no other text.`;
                     const response = data.choices[0].message.content;
                     console.log('API response length:', response.length);
                     
-                    const match = response.match(/\[[\s\S]*\]/);
-                    if (match) {
+                    // Better JSON extraction with error handling
+                    let jsonMatch = response.match(/\[[\s\S]*\]/);
+                    if (!jsonMatch) {
+                        // Try to find JSON without proper array brackets
+                        jsonMatch = response.match(/\{[\s\S]*\}/);
+                    }
+                    
+                    if (jsonMatch) {
                         let questions;
                         try {
-                            questions = JSON.parse(match[0]);
+                            // Clean up common JSON issues
+                            let cleanJson = jsonMatch[0]
+                                .replace(/\\'/g, "'")  // Fix escaped quotes
+                                .replace(/\\"/g, '"')  // Fix double escapes
+                                .replace(/\\n/g, '\\n') // Fix newlines
+                                .replace(/\\t/g, '\\t'); // Fix tabs
+                            
+                            questions = JSON.parse(cleanJson);
                             console.log(`Parsed ${questions.length} questions from API`);
                             
                             // Ensure we have the right number of questions
@@ -4056,6 +4078,8 @@ Return ONLY the JSON array, no other text.`;
                             
                         } catch (parseError) {
                             console.error('Failed to parse questions:', parseError);
+                            console.log('Raw response:', response);
+                            console.log('Extracted JSON:', jsonMatch[0]);
                             lastError = parseError;
                             continue; // Try again
                         }
@@ -4073,8 +4097,20 @@ Return ONLY the JSON array, no other text.`;
                 }
             }
             
-            // All attempts failed - return empty array
+            // All attempts failed - show error to user
             console.error('All attempts failed for question generation');
+            
+            // Check if it's a quota error
+            if (lastError && lastError.message && lastError.message.includes('quota')) {
+                // Remove loading modal and show quota error
+                const modal = document.getElementById('testGenerationModal');
+                if (modal) modal.remove();
+                
+                showAlert('API Quota Exceeded', lastError.message);
+                showPage('home');
+                return [];
+            }
+            
             return [];
         }
 
