@@ -3919,6 +3919,13 @@
                 });
             }
             
+            console.log('Material content for quiz generation:', {
+                subjectName,
+                materialsCount: subject.materials?.length || 0,
+                materialContentLength: materialContent.length,
+                hasContent: materialContent.length > 0
+            });
+            
             currentQuiz = [];
             
             // Generate multiple choice questions
@@ -3958,9 +3965,15 @@
         }
 
         async function generateTestQuestions(subjectName, focus, materialContent, difficulty, type, count) {
+            console.log(`generateTestQuestions called: type=${type}, count=${count}, contentLength=${materialContent?.length || 0}`);
+            
             // Require material content
             if (!materialContent || materialContent.trim().length < 50) {
-                console.warn('Insufficient material content for question generation');
+                console.warn('Insufficient material content for question generation:', {
+                    hasContent: !!materialContent,
+                    length: materialContent?.length || 0,
+                    trimmed: materialContent?.trim().length || 0
+                });
                 return [];
             }
 
