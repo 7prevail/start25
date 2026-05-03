@@ -355,31 +355,48 @@
             margin-bottom: 8px;
         }
         
-        /* Test loader animation */
+        /* Test loader animation - hourglass */
         .test-loader {
-            display: flex;
-            gap: 8px;
-            align-items: center;
+            width: 40px;
+            height: 40px;
+            position: relative;
+            animation: hourglassFlip 3s ease-in-out infinite;
         }
-        .test-loader-dot {
-            width: 12px;
-            height: 12px;
+        .test-loader::before,
+        .test-loader::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
             background: var(--accent);
-            border-radius: 50%;
-            animation: testLoaderBounce 1.4s ease-in-out infinite both;
+            border-radius: 2px;
         }
-        .test-loader-dot:nth-child(1) { animation-delay: -0.32s; }
-        .test-loader-dot:nth-child(2) { animation-delay: -0.16s; }
-        .test-loader-dot:nth-child(3) { animation-delay: 0; }
-        @keyframes testLoaderBounce {
-            0%, 80%, 100% {
-                transform: scale(0.8);
-                opacity: 0.5;
-            }
-            40% {
-                transform: scale(1.2);
-                opacity: 1;
-            }
+        .test-loader::before {
+            top: 0;
+            left: 10px;
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            animation: topSand 3s ease-in-out infinite;
+        }
+        .test-loader::after {
+            bottom: 0;
+            left: 10px;
+            clip-path: polygon(50% 0, 0 100%, 100% 100%);
+            animation: bottomSand 3s ease-in-out infinite;
+        }
+        @keyframes hourglassFlip {
+            0%, 45% { transform: rotate(0deg); }
+            50%, 95% { transform: rotate(180deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes topSand {
+            0%, 45% { opacity: 1; }
+            50%, 95% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        @keyframes bottomSand {
+            0%, 45% { opacity: 0.3; }
+            50%, 95% { opacity: 1; }
+            100% { opacity: 0.3; }
         }
         .headline {
             font-size: 32px;
@@ -3790,11 +3807,7 @@
                 <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 40px;">
                     <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.4);">
                         <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-                            <div class="test-loader">
-                                <div class="test-loader-dot"></div>
-                                <div class="test-loader-dot"></div>
-                                <div class="test-loader-dot"></div>
-                            </div>
+                            <div class="test-loader"></div>
                         </div>
                         <h3 style="margin-bottom: 12px; color: var(--text);">Generating Your Test</h3>
                         <p style="color: var(--text-muted); font-size: 14px;">Creating questions from your materials...</p>
