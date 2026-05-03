@@ -4055,39 +4055,9 @@ Return ONLY the JSON array, no other text.`;
                 }
             }
             
-            // All attempts failed - return fallback questions
-            console.error('All attempts failed, returning fallback questions');
-            return generateFallbackQuestions(subjectName, type, count);
-        }
-        
-        function generateFallbackQuestions(subjectName, type, count) {
-            const fallbackQuestions = [];
-            for (let i = 0; i < count; i++) {
-                if (type === 'multiple_choice') {
-                    fallbackQuestions.push({
-                        question: `What is an important concept in ${subjectName}?`,
-                        options: [
-                            'Option A: A fundamental principle',
-                            'Option B: An advanced technique',
-                            'Option C: A theoretical framework',
-                            'Option D: A practical application'
-                        ],
-                        correct: 0,
-                        explanation: 'This is a fallback question. Please upload more specific study materials for better questions.',
-                        type: 'multiple_choice',
-                        subject: subjectName
-                    });
-                } else {
-                    fallbackQuestions.push({
-                        question: `Explain a key concept from ${subjectName}.`,
-                        answer: 'This is a fallback answer. Please upload more specific study materials.',
-                        explanation: 'This is a fallback question. Please upload more specific study materials for better questions.',
-                        type: 'short_answer',
-                        subject: subjectName
-                    });
-                }
-            }
-            return fallbackQuestions;
+            // All attempts failed - return empty array
+            console.error('All attempts failed for question generation');
+            return [];
         }
 
         function startSubjectQuiz(subjectName) {
