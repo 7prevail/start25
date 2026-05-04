@@ -3993,27 +3993,45 @@ Format as JSON array with exactly ${count} items. For multiple_choice: {"questio
 
 Return ONLY the JSON array, no other text.`;
 
-            // Retry logic for API calls
-            let lastError = null;
-            for (let attempt = 1; attempt <= 3; attempt++) {
-                try {
-                    console.log(`Question generation attempt ${attempt} for ${count} ${type} questions`);
-                    
-                    // Use real AI API
-                    const r = await fetch('/api/gemini', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            model: 'llama-3.1-8b-instant',
-                            messages: [
-                                { role: 'system', content: 'You are a smart, friendly study buddy helping a friend prepare for a test. Be conversational but accurate. Create specific, practical questions they might actually see on an exam. Use clear explanations like you are explaining to a friend over coffee - not too formal, but make sure they understand the concept. Never use generic placeholder questions. CRITICAL: When writing ANY mathematical equations, formulas, integrals, fractions, or symbols in questions, options, or explanations, you MUST use LaTeX format with dollar signs. Always wrap math in $...$ for inline math or $$...$$ for display math. Examples you MUST follow: Write $\\int E \\, dx$ instead of ∫E dx. Write $\\frac{dV}{dx}$ instead of dV/dx. Write $E = mc^2$ instead of E = mc^2. Write $\\lambda$ instead of λ. Write $\\epsilon_0$ instead of ε₀. Never write plain text math - always use LaTeX with dollar signs.' },
-                                { role: 'user', content: prompt }
-                            ],
-                            temperature: 0.7
-                        })
-                    });
+            // API providers with fallback logic
+            const apiProviders = [
+                {
+                    name: 'Gemini',
+                    endpoint: '/api/gemini',
+                    model: 'llama-3.1-8b-instant',
+                    formatResponse: (data) => data.choices[0].message.content
+                },
+                {
+                    name: 'Groq',
+                    endpoint: '/api/groq',
+                    model: 'llama3-70b-8192',
+                    formatResponse: (data) => data.choices[0].message.content
+                }
+            ];
+            
+            // Try each API provider
+            for (const provider of apiProviders) {
+                console.log(`Trying ${provider.name} API for ${count} ${type} questions`);
+                
+                // Retry logic for current provider
+                for (let attempt = 1; attempt <= 2; attempt++) {
+                    try {
+                        console.log(`${provider.name} attempt ${attempt}`);
+                        
+                        const r = await fetch(provider.endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                model: provider.model,
+                                messages: [
+                                    { role: 'system', content: 'You are a smart, friendly study buddy helping a friend prepare for a test. Be conversational but accurate. Create specific, practical questions they might actually see on an exam. Use clear explanations like you are explaining to a friend over coffee - not too formal, but make sure they understand the concept. Never use generic placeholder questions. CRITICAL: When writing ANY mathematical equations, formulas, integrals, fractions, or symbols in questions, options, or explanations, you MUST use LaTeX format with dollar signs. Always wrap math in $...$ for inline math or $$...$$ for display math. Examples you MUST follow: Write $\\int E \\, dx$ instead of ∫E dx. Write $\\frac{dV}{dx}$ instead of dV/dx. Write $E = mc^2$ instead of E = mc^2. Write $\\lambda$ instead of λ. Write $\\epsilon_0$ instead of ε₀. Never write plain text math - always use LaTeX with dollar signs.' },
+                                    { role: 'user', content: prompt }
+                                ],
+                                temperature: 0.7
+                            })
+                        });
                     
                     if (!r.ok) {
                         const errorText = await r.text();
@@ -4035,8 +4053,8 @@ Return ONLY the JSON array, no other text.`;
                         throw new Error('Invalid API response');
                     }
                     
-                    const response = data.choices[0].message.content;
-                    console.log('API response length:', response.length);
+                    const response = provider.formatResponse(data);
+                    console.log(`${provider.name} API response length:`, response.length);
                     
                     // Better JSON extraction with error handling
                     let jsonMatch = response.match(/\[[\s\S]*\]/);
@@ -4056,7 +4074,7 @@ Return ONLY the JSON array, no other text.`;
                                 .replace(/\\t/g, '\\t'); // Fix tabs
                             
                             questions = JSON.parse(cleanJson);
-                            console.log(`Parsed ${questions.length} questions from API`);
+                            console.log(`Parsed ${questions.length} questions from ${provider.name}`);
                             
                             // Ensure we have the right number of questions
                             if (questions.length !== count) {
@@ -4087,15 +4105,21 @@ Return ONLY the JSON array, no other text.`;
                         throw new Error('No JSON array found in response');
                     }
                 } catch (e) {
-                    console.error(`Attempt ${attempt} failed:`, e);
+                    console.error(`${provider.name} attempt ${attempt} failed:`, e);
                     lastError = e;
                     
+                    // If it's a quota error, break to try next provider
+                    if (e.message && e.message.includes('quota')) {
+                        break;
+                    }
+                    
                     // Wait before retry (except on last attempt)
-                    if (attempt < 3) {
+                    if (attempt < 2) {
                         await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
                     }
                 }
             }
+        } // End provider loop
             
             // All attempts failed - show error to user
             console.error('All attempts failed for question generation');
