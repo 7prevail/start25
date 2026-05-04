@@ -3944,16 +3944,6 @@
                 currentQuiz = currentQuiz.concat(saQuestions);
             }
             
-            // Check if we're using fallback questions
-            const hasFallbackQuestions = currentQuiz.some(q => 
-                q.question.includes('Based on your materials:') || 
-                q.question.includes('Review your materials')
-            );
-            
-            if (hasFallbackQuestions) {
-                showAlert('Offline Mode', 'API quota exceeded. Using locally generated questions from your materials. Quality may be limited.');
-            }
-            
             // Shuffle questions
             currentQuiz = currentQuiz.sort(() => Math.random() - 0.5);
             console.log('Final quiz after shuffling:', currentQuiz);
@@ -4107,83 +4097,21 @@ Return ONLY the JSON array, no other text.`;
                 }
             }
             
-            // All attempts failed - use local fallback
-            console.error('All attempts failed for question generation, using local fallback');
+            // All attempts failed - show error to user
+            console.error('All attempts failed for question generation');
             
-            // Check if it's a quota error and use local fallback instead
-            if (lastError && (lastError.message.includes('quota') || lastError.message.includes('API error'))) {
-                console.log('Using local fallback question generation');
-                return generateLocalQuestions(subjectName, focus, materialContent, difficulty, type, count);
+            // Check if it's a quota error
+            if (lastError && lastError.message && lastError.message.includes('quota')) {
+                // Remove loading modal and show quota error
+                const modal = document.getElementById('testGenerationModal');
+                if (modal) modal.remove();
+                
+                showAlert('API Quota Exceeded', lastError.message);
+                showPage('home');
+                return [];
             }
             
             return [];
-        }
-        
-        function generateLocalQuestions(subjectName, focus, materialContent, difficulty, type, count) {
-            console.log(`Generating ${count} local ${type} questions for ${subjectName}`);
-            
-            const questions = [];
-            
-            // Extract key concepts from material content
-            const sentences = materialContent.split(/[.!?]+/).filter(s => s.trim().length > 20);
-            const keySentences = sentences.slice(0, Math.min(sentences.length, count * 3));
-            
-            for (let i = 0; i < count && i < keySentences.length; i++) {
-                const sentence = keySentences[i].trim();
-                
-                if (type === 'multiple_choice') {
-                    questions.push({
-                        question: `Based on your materials: ${sentence.substring(0, 100)}...?`,
-                        options: [
-                            'This is the correct answer based on the material',
-                            'This is incorrect but plausible',
-                            'This is also incorrect',
-                            'This is the fourth option'
-                        ],
-                        correct: 0,
-                        explanation: `This question is based on: ${sentence}`,
-                        type: 'multiple_choice',
-                        subject: subjectName
-                    });
-                } else {
-                    questions.push({
-                        question: `Explain this concept from your materials: ${sentence.substring(0, 80)}...`,
-                        answer: 'Refer to your uploaded materials for the answer',
-                        explanation: `This question is based on: ${sentence}`,
-                        type: 'short_answer',
-                        subject: subjectName
-                    });
-                }
-            }
-            
-            // If we don't have enough material, add generic questions
-            while (questions.length < count) {
-                if (type === 'multiple_choice') {
-                    questions.push({
-                        question: `What is an important concept in ${subjectName}?`,
-                        options: [
-                            'Review your materials to find the answer',
-                            'This is not the correct answer',
-                            'This is also incorrect',
-                            'This is the fourth option'
-                        ],
-                        correct: 0,
-                        explanation: 'Review your uploaded study materials to understand this concept.',
-                        type: 'multiple_choice',
-                        subject: subjectName
-                    });
-                } else {
-                    questions.push({
-                        question: `Describe a key topic from ${subjectName} based on your materials.`,
-                        answer: 'Review your uploaded materials for the answer',
-                        explanation: 'Use your study materials to answer this question.',
-                        type: 'short_answer',
-                        subject: subjectName
-                    });
-                }
-            }
-            
-            return questions.slice(0, count);
         }
 
         function startSubjectQuiz(subjectName) {
