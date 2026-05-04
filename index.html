@@ -4044,6 +4044,11 @@ Return ONLY the JSON array, no other text.`;
                             throw new Error(`API quota exceeded. Please wait ${waitMinutes} minutes or try again tomorrow.`);
                         }
                         
+                        // Check for invalid API key
+                        if (errorText.includes('Invalid API Key') || r.status === 401) {
+                            throw new Error(`Invalid API key for ${provider.name}. Please check your API configuration.`);
+                        }
+                        
                         throw new Error('API error: ' + r.status);
                     }
                     
@@ -4124,17 +4129,24 @@ Return ONLY the JSON array, no other text.`;
             // All attempts failed - show error to user
             console.error('All attempts failed for question generation');
             
-            // Check if it's a quota error
-            if (lastError && lastError.message && lastError.message.includes('quota')) {
-                // Remove loading modal and show quota error
-                const modal = document.getElementById('testGenerationModal');
-                if (modal) modal.remove();
-                
-                showAlert('API Quota Exceeded', lastError.message);
-                showPage('home');
-                return [];
+            // Remove loading modal
+            const modal = document.getElementById('testGenerationModal');
+            if (modal) modal.remove();
+            
+            // Show appropriate error message
+            if (lastError && lastError.message) {
+                if (lastError.message.includes('quota')) {
+                    showAlert('API Quota Exceeded', lastError.message);
+                } else if (lastError.message.includes('Invalid API key')) {
+                    showAlert('API Configuration Error', lastError.message);
+                } else {
+                    showAlert('Generation Failed', 'Could not generate questions. Both APIs are unavailable. Please try again later.');
+                }
+            } else {
+                showAlert('Generation Failed', 'Could not generate questions. Please try again later.');
             }
             
+            showPage('home');
             return [];
         }
 
